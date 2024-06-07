@@ -1,4 +1,4 @@
-name: Vlc-git Appimage
+name: gearlever Appimage
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -17,16 +17,16 @@ jobs:
       run: |
         sudo apt update
         sudo apt install libfuse2
-        wget https://raw.githubusercontent.com/ivan-hc/My-workbench/main/vlc-git-junest.sh
-        chmod a+x ./vlc-git-junest.sh
-        ./vlc-git-junest.sh
+        wget https://raw.githubusercontent.com/ivan-hc/My-workbench/main/gearlever.sh
+        chmod a+x ./gearlever.sh
+        ./gearlever.sh
         mkdir dist
         mv *AppImage dist/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v1.0.0
       with:
-        name: Vlc-git-x86_64.AppImage
+        name: gearlever-x86_64.AppImage
         path: 'dist'
         
   release:
@@ -37,16 +37,16 @@ jobs:
       steps:
         - uses: actions/download-artifact@v1
           with:
-            name: Vlc-git-x86_64.AppImage
+            name: gearlever-x86_64.AppImage
 
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: Test VLC git
-            automatic_release_tag: test-vlc-git
+            title: Test gearlever
+            automatic_release_tag: test-gearlever
             prerelease: false
             draft: false
             files: |
-              Vlc-git-x86_64.AppImage
+              gearlever-x86_64.AppImage
             repo_token: ${{ secrets.GITHUB_TOKEN }}
 
