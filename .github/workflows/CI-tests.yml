@@ -1,4 +1,4 @@
-name: gearlever Appimage
+name: test dwarfs Appimage
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -15,38 +15,10 @@ jobs:
     - name: build
       if: always()
       run: |
-        sudo apt update
-        sudo apt install libfuse2
-        wget https://raw.githubusercontent.com/ivan-hc/My-workbench/main/gearlever.sh
-        chmod a+x ./gearlever.sh
-        ./gearlever.sh
-        mkdir dist
-        mv *AppImage dist/
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: gearlever-x86_64.AppImage
-        path: 'dist'
-        
-  release:
-      needs: [build]
-      permissions: write-all
-      runs-on: ubuntu-latest
-
-      steps:
-        - uses: actions/download-artifact@v1
-          with:
-            name: gearlever-x86_64.AppImage
-
-        - name: release
-          uses: marvinpinto/action-automatic-releases@latest
-          with:
-            title: Test gearlever
-            automatic_release_tag: test-gearlever
-            prerelease: false
-            draft: false
-            files: |
-              gearlever-x86_64.AppImage
-            repo_token: ${{ secrets.GITHUB_TOKEN }}
-
+        wget -q "$(curl -Ls https://api.github.com/repos/mhx/dwarfs/releases/latest | sed 's/[()",{} ]/\n/g' | grep -oi "https.*linux.*x86_64.*xz$" | head -1)" &&
+        tar fx ./dwarfs*xz &&
+        sudo mv ./dwarfs*/bin/* /usr/bin/ &&
+        sudo mv ./dwarfs*/sbin/* /usr/sbin/ &&
+        sudo rsync -av ./dwarfs*/share/man* /usr/share/man/ || exit 1
+        dwarfs -h
+        dwarfs --help
