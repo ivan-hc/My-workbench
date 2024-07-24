@@ -20,7 +20,7 @@ jobs:
         sudo ./create-arch-bootstrap.sh && ./create-conty.sh
         ./bottles-conty-builder.sh
         mkdir -p tmp/bottles.AppDir
-        mv ./conty.sh tmp/bottles.AppDir/
+        mv ./*/conty.sh tmp/bottles.AppDir/
         mkdir dist
         mv *AppImage dist/
     - name: Upload artifact
