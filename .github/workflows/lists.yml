@@ -24,17 +24,16 @@ jobs:
           for toolpack in $TOOLPACK_NAMES; do
                   toolpack_arg=$(echo "$toolpack_md" | grep -i "^| $toolpack " | tr '|' '\n' | cut -c 2- | grep .) \
                   && toolpack_about_description=$(echo "$toolpack_arg" | awk -F: "NR==$toolpack_description" | sed 's/ $/./g') \
-                  && echo "◆ $toolpack : $toolpack_about_description" >> "$AMDATADIR/$ARCH-toolpack" &
+                  && echo "◆ $toolpack : $toolpack_about_description" >> "./$ARCH-toolpack" &
           done
           wait
-          sort "$AMDATADIR/$ARCH-toolpack" | uniq > "$AMDATADIR/$ARCH-toolpack-new" && mv "$AMDATADIR/$ARCH-toolpack-new" "$AMDATADIR/$ARCH-toolpack" || exit 1
-
+          sort "./$ARCH-toolpack" | uniq > "./$ARCH-toolpack-new" && mv "./$ARCH-toolpack-new" "./$ARCH-toolpack" || exit 1
 
           # AppImages list
 
           APPIMAGE_NAMES=$(curl -Ls https://portable-linux-apps.github.io/appimages.md | tr '/)' '\n' | grep -i ".md$" | uniq | sed 's/.md$//g' | grep -v "\[")
           for appimage in $APPIMAGE_NAMES; do
-                  grep "◆ $appimage :" "$AMDATADIR/$ARCH-apps" >> "$AMDATADIR/$ARCH-appimages" &
+                  grep "◆ $appimage :" "./$ARCH-apps" >> "./$ARCH-appimages" &
           done
           wait
           mkdir dist
