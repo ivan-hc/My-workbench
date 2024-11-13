@@ -39,27 +39,29 @@ jobs:
           mkdir dist
           mv *${ARCH}-* dist/
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: lists
-          path: dist
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4.4.0
+      with:
+        name: lists
+        path: 'dist'
+        
   release:
-    needs:
-      - build
-    permissions: write-all
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4.1.8
-        with:
-          name: lists
-      - name: release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          title: lists
-          automatic_release_tag: lists
-          prerelease: false
-          draft: true
-          files: |
-            *${ARCH}-*
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+      needs: [build]
+      permissions: write-all
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/download-artifact@v4.1.8
+          with:
+            name: lists
+
+        - name: release
+          uses: marvinpinto/action-automatic-releases@latest
+          with:
+            title: lists
+            automatic_release_tag: lists
+            prerelease: true
+            draft: false
+            files: |
+              *-*
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
