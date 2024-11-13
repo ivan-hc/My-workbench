@@ -35,6 +35,7 @@ jobs:
           # AppImages list
 
           APPIMAGE_NAMES=$(curl -Ls https://portable-linux-apps.github.io/appimages.md | tr '/)' '\n' | grep -i ".md$" | uniq | sed 's/.md$//g' | grep -v "\[")
+          curl -Ls "https://raw.githubusercontent.com/ivan-hc/AM/refs/heads/main/programs/x86_64-apps" > ./$ARCH-apps"
           for appimage in $APPIMAGE_NAMES; do
                   grep "◆ $appimage :" "./$ARCH-apps" >> "./$ARCH-appimages" &
           done
@@ -66,5 +67,5 @@ jobs:
             prerelease: true
             draft: false
             files: |
-              *-*
+              *x86_64-*
             repo_token: ${{ secrets.GITHUB_TOKEN }}
