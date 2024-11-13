@@ -1,0 +1,66 @@
+name: AM lists
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  schedule:
+    - cron: 0 * * * 0-6
+  workflow_dispatch: null
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: >
+          # Toolpacks list
+
+          toolpack_repo="https://github.com/Azathothas/Toolpacks"
+          ARCH=x86_64
+          toolpack_readme="https://bin.pkgforge.dev/${ARCH}/AM.txt"
+          export toolpack_name="1" toolpack_description="2" toolpack_site="3" toolpack_dl="4" toolpack_ver="5"
+          toolpack_md=$(curl -Ls "$toolpack_readme" | grep -v "\.appimage ")
+          TOOLPACK_NAMES=$(echo "$toolpack_md" | cut -d' ' -f2- | awk '{print $1}')
+          for toolpack in $TOOLPACK_NAMES; do
+                  toolpack_arg=$(echo "$toolpack_md" | grep -i "^| $toolpack " | tr '|' '\n' | cut -c 2- | grep .) \
+                  && toolpack_about_description=$(echo "$toolpack_arg" | awk -F: "NR==$toolpack_description" | sed 's/ $/./g') \
+                  && echo "◆ $toolpack : $toolpack_about_description" >> "$AMDATADIR/$ARCH-toolpack" &
+          done
+          wait
+          sort "$AMDATADIR/$ARCH-toolpack" | uniq > "$AMDATADIR/$ARCH-toolpack-new" && mv "$AMDATADIR/$ARCH-toolpack-new" "$AMDATADIR/$ARCH-toolpack" || exit 1
+
+
+          # AppImages list
+
+          APPIMAGE_NAMES=$(curl -Ls https://portable-linux-apps.github.io/appimages.md | tr '/)' '\n' | grep -i ".md$" | uniq | sed 's/.md$//g' | grep -v "\[")
+          for appimage in $APPIMAGE_NAMES; do
+                  grep "◆ $appimage :" "$AMDATADIR/$ARCH-apps" >> "$AMDATADIR/$ARCH-appimages" &
+          done
+          wait
+          mkdir dist
+          mv *${ARCH}-* dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: lists
+          path: dist
+  release:
+    needs:
+      - build
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4.1.8
+        with:
+          name: lists
+      - name: release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          title: lists
+          automatic_release_tag: lists
+          prerelease: false
+          draft: true
+          files: |
+            *${ARCH}-*
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
