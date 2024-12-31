@@ -21,6 +21,7 @@ jobs:
         wget -q https://raw.githubusercontent.com/Kron4ek/Conty/hostmode/create-conty.sh
         wget -q https://raw.githubusercontent.com/Kron4ek/Conty/hostmode/conty-start.sh
         wget -q https://github.com/Samueru-sama/Conty/releases/download/utils/utils_dwarfs.tar.gz
+        wget -q https://github.com/Kron4ek/Conty/raw/hostmode/utils.tar.gz
         chmod +x create-conty.sh
         ./create-conty.sh
         mkdir dist
