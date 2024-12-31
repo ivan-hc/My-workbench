@@ -1,0 +1,53 @@
+name: Conty mini
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  #schedule:
+  #  - cron: "0 6 * * 0-6"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: build
+      run: |
+        sudo apt install desktop-file-utils
+        APP=steam
+        wget -q https://raw.githubusercontent.com/Kron4ek/Conty/hostmode/create-conty.sh
+        wget -q https://raw.githubusercontent.com/Kron4ek/Conty/hostmode/conty-start.sh
+        wget -q https://github.com/Samueru-sama/Conty/releases/download/utils/utils_dwarfs.tar.gz
+        chmod +x create-conty.sh
+        ./create-conty.sh
+        mkdir dist
+        mv conty.sh dist/
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4.4.0
+      with:
+        name: Conty mini
+        path: 'dist'
+        
+  release:
+      needs: [build]
+      permissions: write-all
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/download-artifact@v4.1.8
+          with:
+            name: Conty mini
+
+        - name: release
+          uses: marvinpinto/action-automatic-releases@latest
+          with:
+            title: Conty mini
+            automatic_release_tag: conty-mini
+            prerelease: false
+            draft: false
+            files: |
+              conty.sh
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
