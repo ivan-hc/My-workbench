@@ -2,7 +2,7 @@
 
 APP=obs-studio
 BIN="obs" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCES ARE NEEDED
+DEPENDENCES="dbus libxcb xapp" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCES ARE NEEDED
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
@@ -11,10 +11,10 @@ DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPEND
 #############################################################################
 
 BINSAVED="SAVEBINSPLEASE"
-SHARESAVED="SAVESHAREPLEASE"
+SHARESAVED="glvnd"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libdl.so libpthread.so librt.so libasound.so libX11-xcb.so libxapp-gtk3-module.so libgtk-3.so.0 pk p11"
-LIBSAVED="SAVELIBSPLEASE $lib_audio_keywords $lib_browser_launcher"
+LIBSAVED="libDeckLinkAPI libdrm libedit libfdk libLLVM libluajit libsensors libva libwayland libxcb libxshmfence loopback pen qt v4l vpl $lib_audio_keywords $lib_browser_launcher"
 
 #############################################################################
 #	SETUP THE ENVIRONMENT
@@ -367,7 +367,7 @@ _extract_all_dependences() {
 	done
 
 	# Set the level of sub-dependencies extraction, the higher the number, the bigger the AppImage will be
-	[ -z "$extraction_count" ] && extraction_count=2
+	[ -z "$extraction_count" ] && extraction_count=0
 	for e in $(seq "$extraction_count"); do _extract_deps; done
 
 	rm -f ./packages
@@ -399,7 +399,7 @@ _savebins() {
 	mv ./"$APP".AppDir/.junest/usr/bin/proot* ./save/
 	mv ./"$APP".AppDir/.junest/usr/bin/*$BIN* ./save/
 	coreutils="[ basename cat chmod chown cp cut dir dirname du echo env expand expr fold head id ln ls mkdir mv readlink realpath rm rmdir seq sleep sort stty sum sync tac tail tee test timeout touch tr true tty uname uniq wc who whoami yes"
-	utils_bin="bash $coreutils grep ld sed sh strings"
+	utils_bin="bash $coreutils gio grep ld sed sh strings xdg-open"
 	for b in $utils_bin; do
  		mv ./"$APP".AppDir/.junest/usr/bin/"$b" ./save/
    	done
