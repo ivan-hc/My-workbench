@@ -11,10 +11,10 @@ DEPENDENCES="dbus libxcb xapp" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF
 #############################################################################
 
 BINSAVED="SAVEBINSPLEASE"
-SHARESAVED="glvnd"
+SHARESAVED="SAVESHAREPLEASE"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libdl.so libpthread.so librt.so libasound.so libX11-xcb.so libxapp-gtk3-module.so libgtk-3.so.0 pk p11"
-LIBSAVED="libDeckLinkAPI libdrm libedit libfdk libLLVM libluajit libsensors libva libwayland libxcb libxshmfence loopback pen qt v4l vpl $lib_audio_keywords $lib_browser_launcher"
+LIBSAVED="SAVELIBSPLEASE $lib_audio_keywords $lib_browser_launcher"
 
 #############################################################################
 #	SETUP THE ENVIRONMENT
@@ -367,7 +367,7 @@ _extract_all_dependences() {
 	done
 
 	# Set the level of sub-dependencies extraction, the higher the number, the bigger the AppImage will be
-	[ -z "$extraction_count" ] && extraction_count=0
+	[ -z "$extraction_count" ] && extraction_count=1
 	for e in $(seq "$extraction_count"); do _extract_deps; done
 
 	rm -f ./packages
