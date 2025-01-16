@@ -367,8 +367,8 @@ _extract_all_dependences() {
 	done
 
 	# Set the level of sub-dependencies extraction, the higher the number, the bigger the AppImage will be
-	[ -z "$extraction_count" ] && extraction_count=1
-	for e in $(seq "$extraction_count"); do _extract_deps; done
+	[ -z "$extraction_count" ] && extraction_count=0
+	if [ "$extraction_count" !=0 ]; then for e in $(seq "$extraction_count"); do _extract_deps; done; fi
 
 	rm -f ./packages
 }
@@ -564,7 +564,7 @@ _remove_more_bloatwares() {
 	for r in $bin_remove; do
 		rm -Rf ./"$APP".AppDir/.junest/usr/bin/"$r"*
 	done
-	lib_remove="d3d gcc libgphobos libOSMesa libxatracker"
+	lib_remove="cmake d3d gcc gconv libgphobos libOSMesa libxatracker"
 	for r in $lib_remove; do
 		rm -Rf ./"$APP".AppDir/.junest/usr/lib/"$r"*
 	done
