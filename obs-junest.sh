@@ -14,7 +14,7 @@ BINSAVED="SAVEBINSPLEASE"
 SHARESAVED="glvnd"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libdl.so libpthread.so librt.so libasound.so libX11-xcb.so libxapp-gtk3-module.so libgtk-3.so.0 pk p11"
-LIBSAVED="EGL libLLVM $lib_audio_keywords $lib_browser_launcher"
+LIBSAVED="EGL libLLVM libQt xcb $lib_audio_keywords $lib_browser_launcher"
 
 #############################################################################
 #	SETUP THE ENVIRONMENT
