@@ -2,7 +2,7 @@
 
 APP=obs-studio
 BIN="obs" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="dbus libxcb xapp" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCES ARE NEEDED
+DEPENDENCES="xapp" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCES ARE NEEDED
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
@@ -11,10 +11,10 @@ DEPENDENCES="dbus libxcb xapp" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF
 #############################################################################
 
 BINSAVED="SAVEBINSPLEASE"
-SHARESAVED="glvnd"
+SHARESAVED="SAVESHAREPLEASE"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libdl.so libpthread.so librt.so libasound.so libX11-xcb.so libxapp-gtk3-module.so libgtk-3.so.0 pk p11"
-LIBSAVED="EGL libLLVM libQt xcb $lib_audio_keywords $lib_browser_launcher"
+LIBSAVED="SAVELIBSPLEASE $lib_audio_keywords $lib_browser_launcher"
 
 #############################################################################
 #	SETUP THE ENVIRONMENT
@@ -367,8 +367,8 @@ _extract_all_dependences() {
 	done
 
 	# Set the level of sub-dependencies extraction, the higher the number, the bigger the AppImage will be
-	[ -z "$extraction_count" ] && extraction_count=0
-	if [ "$extraction_count" !=0 ]; then for e in $(seq "$extraction_count"); do _extract_deps; done; fi
+	[ -z "$extraction_count" ] && extraction_count=2
+	for e in $(seq "$extraction_count"); do _extract_deps; done
 
 	rm -f ./packages
 }
