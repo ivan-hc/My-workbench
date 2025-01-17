@@ -2,7 +2,7 @@
 
 APP=obs-studio
 BIN="obs" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="libproxy libglvnd icu pango util-linux-libs jbigkit xcb-util-cursor" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+DEPENDENCES="libproxy libglvnd icu pango util-linux-libs jbigkit xcb-util-cursor nspr" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
