@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 
-APP=obs-studio
+APP=obs-studio-browser
 BIN="obs" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="libproxy libglvnd icu pango util-linux-libs jbigkit xcb-util-cursor nspr" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
-#BASICSTUFF="binutils debugedit gzip"
-#COMPILERS="base-devel"
+DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+BASICSTUFF="binutils debugedit gzip"
+COMPILERS="base-devel"
 
 #############################################################################
 #	KEYWORDS TO FIND AND SAVE WHEN COMPILING THE APPIMAGE
 #############################################################################
 
 BINSAVED="SAVEBINSPLEASE"
-SHARESAVED="SAVESHAREPLEASE"
+SHARESAVED="glvnd"
 lib_audio_keywords="alsa jack pipewire pulse"
-lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libXrandr p11 pk"
-LIBSAVED="SAVELIBSPLEASE $lib_audio_keywords $lib_browser_launcher"
+lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libxkbfile.so libXrandr p11 pk"
+LIBSAVED="EGL libDeckLinkAPI libdrm libedit libfdk libFLAC.so libglslang-default-resource-limits.so libLLVM libluajit libpxbackend libsensors \
+libSM.so libsodium.so libsoxr.so libva libwayland libxcb libxshmfence qt v4l $lib_audio_keywords $lib_browser_launcher"
 
 [ -n "$lib_browser_launcher" ] && DEPENDENCES="$DEPENDENCES xapp hicolor-icon-theme"
 
@@ -25,13 +26,9 @@ LIBSAVED="SAVELIBSPLEASE $lib_audio_keywords $lib_browser_launcher"
 # Download appimagetool
 if [ ! -f ./appimagetool ]; then
 	echo "-----------------------------------------------------------------------------"
-	echo " SETUP THE ENVIRONMENT"
-	echo "-----------------------------------------------------------------------------"
-	echo ""
 	echo "◆ Downloading \"appimagetool\" from https://github.com/AppImage/appimagetool"
-	echo ""
+	echo "-----------------------------------------------------------------------------"
 	curl -#Lo appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage && chmod a+x appimagetool
-	echo ""
 fi
 
 # Create and enter the AppDir
@@ -81,9 +78,9 @@ _install_junest() {
 	curl -#Lo junest-x86_64.tar.gz https://github.com/ivan-hc/junest/releases/download/continuous/junest-x86_64.tar.gz
 	./.local/share/junest/bin/junest setup -i junest-x86_64.tar.gz
 	rm -f junest-x86_64.tar.gz
-	echo " Apply patches to PacMan"
+	echo " Apply patches to PacMan..."
 	#_enable_multilib
-	#_enable_chaoticaur
+	_enable_chaoticaur
 	_custom_mirrorlist
 	_bypass_signature_check_level
 
@@ -93,21 +90,18 @@ _install_junest() {
 }
 
 if ! test -d "$HOME/.local/share/junest"; then
-	echo ""
 	echo "-----------------------------------------------------------------------------"
 	echo " DOWNLOAD, INSTALL AND CONFIGURE JUNEST"
 	echo "-----------------------------------------------------------------------------"
-	echo ""
 	_install_junest
 else
 	echo "-----------------------------------------------------------------------------"
 	echo " RESTART JUNEST"
 	echo "-----------------------------------------------------------------------------"
-	echo ""
 fi
 
 #############################################################################
-#	INSTALL PROGRAMS IN THE ARCH LINUX CONTAINER
+#	INSTALL PROGRAMS USING YAY
 #############################################################################
 
 ./.local/share/junest/bin/junest -- yay -Syy
@@ -123,17 +117,13 @@ if [ -n "$DEPENDENCES" ]; then
 fi
 if [ -n "$APP" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S alsa-lib gtk3 xapp
-	./.local/share/junest/bin/junest -- yay --noconfirm -S "$APP"
+	./.local/share/junest/bin/junest -- yay --noconfirm -Sa "$APP"
 	./.local/share/junest/bin/junest -- glib-compile-schemas /usr/share/glib-2.0/schemas/
 else
 	echo "No app found, exiting"; exit 1
 fi
 
 cd ..
-
-#############################################################################
-#	CREATING THE APPDIR
-#############################################################################
 
 echo ""
 echo "-----------------------------------------------------------------------------"
@@ -213,7 +203,7 @@ rsync -av archlinux/.junest/usr/bin_wrappers/ "$APP".AppDir/.junest/usr/bin_wrap
 rsync -av archlinux/.junest/etc/* "$APP".AppDir/.junest/etc/ | echo "◆ Rsync /etc"
 
 #############################################################################
-#	CREATING THE APPRUN
+#	APPRUN
 #############################################################################
 
 rm -f "$APP".AppDir/AppRun
@@ -287,10 +277,10 @@ HEREDOC
 chmod a+x "$APP".AppDir/AppRun
 
 #############################################################################
-#	EXTRACTING PACKAGES
+#	EXTRACT PACKAGES
 #############################################################################
 
-[ -z "$extraction_count" ] && extraction_count=1
+[ -z "$extraction_count" ] && extraction_count=0
 [ ! -f ./autodeps ] && echo "$extraction_count" > ./autodeps
 [ -f ./autodeps ] && autodeps=$(cat ./autodeps)
 [ "$autodeps" != "$extraction_count" ] && rm -Rf ./deps ./packages && echo "$extraction_count" > ./autodeps
@@ -299,7 +289,6 @@ chmod a+x "$APP".AppDir/AppRun
 [ -f ./userdeps ] && userdeps=$(cat ./userdeps)
 [ "$userdeps" != "$DEPENDENCES" ] && rm -Rf ./deps ./packages && echo "$DEPENDENCES" > ./userdeps
 
-# EXTRACT PACKAGES
 _extract_main_package() {
 	mkdir -p base
 	rm -Rf ./base/*
@@ -366,7 +355,7 @@ _extract_deps() {
 	done
 }
 
-_extract_all_dependencies() {
+_extract_all_dependences() {
 	rm -f ./depdeps
 
 	OPTDEPS=$(cat ./base/.PKGINFO 2>/dev/null | grep "^optdepend = " | sed 's/optdepend = //g' | sed 's/=.*//' | sed 's/:.*//')
@@ -393,11 +382,7 @@ _extract_all_dependencies() {
 }
 
 _extract_main_package
-_extract_all_dependencies
-
-#############################################################################
-#	ASSEMBLING THE APPIMAGE
-#############################################################################
+_extract_all_dependences
 
 echo ""
 echo "-----------------------------------------------------------------------------"
@@ -424,40 +409,66 @@ _savebins() {
 # Save files in /usr/lib
 _savelibs() {
 	echo "◆ Detect libraries related to /usr/bin files"
-	readelf -d ./"$APP".AppDir/.junest/usr/bin/* 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so" | uniq >> ./list
+	libs4bin=$(readelf -d ./"$APP".AppDir/.junest/usr/bin/* 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so")
 
-	echo "◆ Detect libraries of the main package"
-	base_libs=$(find ./base -type f | uniq)
-	for b in $base_libs; do
-		readelf -d "$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so" | uniq >> ./list &
-	done
-	wait
-
-	echo "◆ Detect libraries of the dependencies"
-	dep_libs=$(find ./deps -executable -type f | uniq)
-	for d in $dep_libs; do
-		readelf -d "$d" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so" | uniq >> ./list &
-	done
-	wait
-
-	echo "◆ Saving libraries"
+	echo "◆ Saving JuNest core libraries"
 	cp -r ./archlinux/.junest/usr/lib/ld-linux-x86-64.so* ./"$APP".AppDir/.junest/usr/lib/
-	lib_preset="$APP $BIN libdw libelf $(sort -u ./list)"
+	lib_preset="$APP $BIN gconv libdw libelf libresolv.so libtinfo.so $libs4bin"
 	LIBSAVED="$lib_preset $LIBSAVED $SHARESAVED"
 	for arg in $LIBSAVED; do
 		LIBPATHS="$LIBPATHS $(find ./archlinux/.junest/usr/lib -maxdepth 20 -wholename "*$arg*" | sed 's/\.\/archlinux\///g')"
 	done
 	for arg in $LIBPATHS; do
-		rsync -av ./archlinux/"$arg" "$APP".AppDir/"$arg" 2>&1 >/dev/null &
+		cp -r ./archlinux/"$arg" "$APP".AppDir/"$arg" 2>/dev/null &
 	done
 	wait
-	rm list
+	core_libs=$(find ./"$APP".AppDir -type f)
+	lib_core=$(for c in $core_libs; do readelf -d "$c" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+
+	echo "◆ Detect libraries of the main package"
+	base_libs=$(find ./base -type f | uniq)
+	lib_base_0=$(for b in $base_libs; do readelf -d "$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+
+	echo "◆ Detect libraries of the dependencies"
+	dep_libs=$(find ./deps -executable -name "*.so*")
+	lib_deps=$(for d in $dep_libs; do readelf -d "$d" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+
+	echo "◆ Detect and copy base libs"
+	basebin_libs=$(find ./base -executable -name "*.so*")
+	lib_base_1=$(for b in $basebin_libs; do readelf -d "$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_1=$(echo "$lib_base_1" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_2=$(for b in $lib_base_1; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_2=$(echo "$lib_base_2" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_3=$(for b in $lib_base_2; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_3=$(echo "$lib_base_3" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_4=$(for b in $lib_base_3; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_4=$(echo "$lib_base_4" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_5=$(for b in $lib_base_4; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_5=$(echo "$lib_base_5" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_6=$(for b in $lib_base_5; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_6=$(echo "$lib_base_6" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_7=$(for b in $lib_base_6; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_7=$(echo "$lib_base_7" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_8=$(for b in $lib_base_7; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_8=$(echo "$lib_base_8" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_9=$(for b in $lib_base_8; do readelf -d ./archlinux/.junest/usr/lib/"$b" 2>/dev/null | grep NEEDED | tr '[] ' '\n' | grep ".so"; done)
+	lib_base_9=$(echo "$lib_base_9" | tr ' ' '\n' | sort -u | xargs)
+	lib_base_libs="$lib_core $lib_base_0 $lib_base_1 $lib_base_2 $lib_base_3 $lib_base_4 $lib_base_5 $lib_base_6 $lib_base_7 $lib_base_8 $lib_base_9 $lib_deps"
+	lib_base_libs=$(echo "$lib_base_libs" | tr ' ' '\n' | sort -u | sed 's/.so.*/.so/' | xargs)
+	for l in $lib_base_libs; do
+		rsync -av ./archlinux/.junest/usr/lib/"$l"* ./"$APP".AppDir/.junest/usr/lib/ &
+	done
+	wait
+	for l in $lib_base_libs; do
+		rsync -av ./deps/usr/lib/"$l"* ./"$APP".AppDir/.junest/usr/lib/ &
+	done
+	wait
 }
 
 # Save files in /usr/share
 _saveshare() {
 	echo "◆ Saving directories in /usr/share"
-	SHARESAVED="$SHARESAVED $APP $BIN  fontconfig glib- locale mime wayland X11"
+	SHARESAVED="$SHARESAVED $APP $BIN fontconfig glib- locale mime wayland X11"
 	for arg in $SHARESAVED; do
 		cp -r ./archlinux/.junest/usr/share/*"$arg"* ./"$APP".AppDir/.junest/usr/share/
  	done
@@ -488,14 +499,8 @@ _rsync_main_package
 _rsync_dependences
 
 #############################################################################
-#	REMOVING BLOATWARES AND ENABLING MOUNTPOINTS
+#	REMOVE BLOATWARES, ENABLE MOUNTPOINTS
 #############################################################################
-
-echo ""
-echo "-----------------------------------------------------------------------------"
-echo " REMOVING BLOATWARES AND ENABLING MOUNTPOINTS"
-echo "-----------------------------------------------------------------------------"
-echo ""
 
 _remove_more_bloatwares() {
 	etc_remove="makepkg.conf pacman"
@@ -525,10 +530,6 @@ _remove_more_bloatwares() {
 	rm -Rf ./"$APP".AppDir/.junest/usr/lib/libgo.so*
 	#rm -Rf ./"$APP".AppDir/.junest/usr/lib/libLLVM* # included in the compilation phase, can sometimes be excluded for daily use
 	rm -Rf ./"$APP".AppDir/.junest/var/* # remove all packages downloaded with the package manager
-	find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
-	find ./"$APP".AppDir/.junest/usr -type f -regex '.*\.so.*' -exec strip --strip-debug {} \;
-	find ./"$APP".AppDir/.junest/usr/bin -type f ! -regex '.*\.so.*' -exec strip --strip-unneeded {} \;
-	find ./"$APP".AppDir/.junest/usr -type d -empty -delete
 }
 
 _enable_mountpoints_for_the_inbuilt_bubblewrap() {
@@ -544,17 +545,15 @@ _enable_mountpoints_for_the_inbuilt_bubblewrap() {
 }
 
 _remove_more_bloatwares
+find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
+find ./"$APP".AppDir/.junest/usr -type f -regex '.*\.so.*' -exec strip --strip-debug {} \;
+find ./"$APP".AppDir/.junest/usr/bin -type f ! -regex '.*\.so.*' -exec strip --strip-unneeded {} \;
+find ./"$APP".AppDir/.junest/usr -type d -empty -delete
 _enable_mountpoints_for_the_inbuilt_bubblewrap
 
 #############################################################################
-#	EXPORT TO APPIMAGE
+#	CREATE THE APPIMAGE
 #############################################################################
-
-echo ""
-echo "-----------------------------------------------------------------------------"
-echo " EXPORT TO APPIMAGE"
-echo "-----------------------------------------------------------------------------"
-echo ""
 
 if test -f ./*.AppImage; then rm -Rf ./*archimage*.AppImage; fi
 
