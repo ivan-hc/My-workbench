@@ -1,0 +1,51 @@
+name: Steam Archimage
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  #schedule:
+  #  - cron: "0 15 2 * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: build
+      run: |
+        sudo apt update && sudo apt install desktop-file-utils
+        wget https://raw.githubusercontent.com/ivan-hc/Steam-appimage/main/steam-junest.sh
+        chmod a+x ./steam-junest.sh
+        ./steam-junest.sh
+        mkdir dist
+        mv *AppImage* dist/
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4.4.0
+      with:
+        name: Steam-x86_64.AppImage
+        path: 'dist'
+        
+  release:
+      needs: [build]
+      permissions: write-all
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/download-artifact@v4.1.8
+          with:
+            name: Steam-x86_64.AppImage
+
+        - name: release
+          uses: marvinpinto/action-automatic-releases@latest
+          with:
+            title: Steam
+            automatic_release_tag: steam
+            prerelease: false
+            draft: false
+            files: |
+              *.AppImage*
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
