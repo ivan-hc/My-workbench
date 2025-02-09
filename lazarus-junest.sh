@@ -15,7 +15,7 @@ SHARESAVED="SAVESHAREPLEASE"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libxkbfile.so libXrandr p11 pk"
 LIBSAVED="libEGL libQt libGLX libOpenGL libmd libicui libdouble-conversion libb2 libpcre libGLdispatch libgomp libxcb libuuid \
-libSM libICE libxkbcommon qt $lib_audio_keywords $lib_browser_launcher"
+libSM libICE libxkbcommon qt libc_nonshared $lib_audio_keywords $lib_browser_launcher"
 
 [ -n "$lib_browser_launcher" ] && DEPENDENCES="$DEPENDENCES xapp hicolor-icon-theme"
 
@@ -348,7 +348,7 @@ _extract_package() {
 _determine_packages_and_libraries() {
 	if echo "$arg" | grep -q "\.so"; then
 		LIBSAVED="$LIBSAVED $arg"
-	elif [ "$arg" != autoconf ] && [ "$arg" != autoconf ] && [ "$arg" != automake ] && [ "$arg" != bison ] && [ "$arg" != debugedit ] && [ "$arg" != dkms ] && [ "$arg" != fakeroot ] && [ "$arg" != flatpak ] && [ "$arg" != linux ] && [ "$arg" != gcc ] && [ "$arg" != pacman ] && [ "$arg" != patch ] && [ "$arg" != systemd ]; then
+	elif [ "$arg" != autoconf ] && [ "$arg" != autoconf ] && [ "$arg" != automake ] && [ "$arg" != bison ] && [ "$arg" != debugedit ] && [ "$arg" != dkms ] && [ "$arg" != fakeroot ] && [ "$arg" != flatpak ] && [ "$arg" != linux ] && [ "$arg" != pacman ] && [ "$arg" != patch ] && [ "$arg" != systemd ]; then
 		_extract_package
 		cat ./deps/.PKGINFO 2>/dev/null | grep "^depend = " | cut -c 10- | sed 's/=.*//' >> depdeps
 		rm -f ./deps/.*
@@ -514,18 +514,18 @@ _remove_more_bloatwares() {
 	for r in $etc_remove; do
 		rm -Rf ./"$APP".AppDir/.junest/etc/"$r"*
 	done
-	bin_remove="gcc"
-	for r in $bin_remove; do
-		rm -Rf ./"$APP".AppDir/.junest/usr/bin/"$r"*
-	done
-	lib_remove="gcc"
-	for r in $lib_remove; do
-		rm -Rf ./"$APP".AppDir/.junest/usr/lib/"$r"*
-	done
-	share_remove="gcc"
-	for r in $share_remove; do
-		rm -Rf ./"$APP".AppDir/.junest/usr/share/"$r"*
-	done
+	#bin_remove=""
+	#for r in $bin_remove; do
+	#	rm -Rf ./"$APP".AppDir/.junest/usr/bin/"$r"*
+	#done
+	#lib_remove=""
+	#for r in $lib_remove; do
+	#	rm -Rf ./"$APP".AppDir/.junest/usr/lib/"$r"*
+	#done
+	#share_remove=""
+	#for r in $share_remove; do
+	#	rm -Rf ./"$APP".AppDir/.junest/usr/share/"$r"*
+	#done
 	echo Y | rm -Rf ./"$APP".AppDir/.cache/yay/*
 	find ./"$APP".AppDir/.junest/usr/share/doc/* -not -iname "*$BIN*" -a -not -name "." -delete 2> /dev/null #REMOVE ALL DOCUMENTATION NOT RELATED TO THE APP
 	find ./"$APP".AppDir/.junest/usr/share/locale/*/*/* -not -iname "*$BIN*" -a -not -name "." -delete 2> /dev/null #REMOVE ALL ADDITIONAL LOCALE FILES
@@ -552,7 +552,7 @@ _enable_mountpoints_for_the_inbuilt_bubblewrap() {
 }
 
 _remove_more_bloatwares
-find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
+#find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
 find ./"$APP".AppDir/.junest/usr -type f -regex '.*\.so.*' -exec strip --strip-debug {} \;
 find ./"$APP".AppDir/.junest/usr/bin -type f ! -regex '.*\.so.*' -exec strip --strip-unneeded {} \;
 find ./"$APP".AppDir/.junest/usr -type d -empty -delete
