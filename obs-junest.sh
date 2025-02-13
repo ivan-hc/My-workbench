@@ -112,12 +112,12 @@ fi
 if [ -n "$COMPILERS" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S $COMPILERS
 fi
-DEPENDENCES="$DEPENDENCES $(./.local/share/junest/bin/junest -- yay -Si "$APP" | grep -i 'depends on' | cut -d ':' -f 2 | xargs)"
 if [ -n "$DEPENDENCES" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S $DEPENDENCES
 fi
 if [ -n "$APP" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S alsa-lib gtk3 xapp
+	./.local/share/junest/bin/junest -- yay --noconfirm -S "$(./.local/share/junest/bin/junest -- yay -Si "$APP" | grep -i 'depends on' | cut -d ':' -f 2)"
 	./.local/share/junest/bin/junest -- yay --noconfirm -Sa "$APP"
 	./.local/share/junest/bin/junest -- glib-compile-schemas /usr/share/glib-2.0/schemas/
 else
