@@ -10,12 +10,12 @@ COMPILERS="base-devel"
 #	KEYWORDS TO FIND AND SAVE WHEN COMPILING THE APPIMAGE
 #############################################################################
 
-BINSAVED="SAVEBINSPLEASE"
+BINSAVED="v4l"
 SHARESAVED="glvnd"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libxkbfile.so libXrandr p11 pk"
 LIBSAVED="EGL libDeckLinkAPI libdrm libedit libfdk libFLAC.so libglslang-default-resource-limits.so libLLVM libluajit libpxbackend libsensors \
-libSM.so libsodium.so libsoxr.so libva libwayland libxcb libxshmfence qt v4l $lib_audio_keywords $lib_browser_launcher"
+libSM.so libsodium.so libsoxr.so libva libwayland libxcb libxshmfence qt v4l libSDL $lib_audio_keywords $lib_browser_launcher"
 
 [ -n "$lib_browser_launcher" ] && DEPENDENCES="$DEPENDENCES xapp hicolor-icon-theme"
 
@@ -80,7 +80,7 @@ _install_junest() {
 	rm -f junest-x86_64.tar.gz
 	echo " Apply patches to PacMan..."
 	#_enable_multilib
-	_enable_chaoticaur
+	#_enable_chaoticaur
 	_custom_mirrorlist
 	_bypass_signature_check_level
 
@@ -117,7 +117,7 @@ if [ -n "$DEPENDENCES" ]; then
 fi
 if [ -n "$APP" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S alsa-lib gtk3 xapp
-	./.local/share/junest/bin/junest -- yay --noconfirm -Sa "$APP"
+	./.local/share/junest/bin/junest -- yay --noconfirm -S "$APP"
 	./.local/share/junest/bin/junest -- glib-compile-schemas /usr/share/glib-2.0/schemas/
 else
 	echo "No app found, exiting"; exit 1
@@ -280,7 +280,7 @@ chmod a+x "$APP".AppDir/AppRun
 #	EXTRACT PACKAGES
 #############################################################################
 
-[ -z "$extraction_count" ] && extraction_count=0
+[ -z "$extraction_count" ] && extraction_count=1
 [ ! -f ./autodeps ] && echo "$extraction_count" > ./autodeps
 [ -f ./autodeps ] && autodeps=$(cat ./autodeps)
 [ "$autodeps" != "$extraction_count" ] && rm -Rf ./deps ./packages && echo "$extraction_count" > ./autodeps
@@ -419,7 +419,7 @@ _savelibs() {
 		LIBPATHS="$LIBPATHS $(find ./archlinux/.junest/usr/lib -maxdepth 20 -wholename "*$arg*" | sed 's/\.\/archlinux\///g')"
 	done
 	for arg in $LIBPATHS; do
-		cp -r ./archlinux/"$arg" "$APP".AppDir/"$arg" 2>/dev/null &
+		[ ! -d "$APP".AppDir/"$arg" ] && cp -r ./archlinux/"$arg" "$APP".AppDir/"$arg" &
 	done
 	wait
 	core_libs=$(find ./"$APP".AppDir -type f)
@@ -544,6 +544,9 @@ _enable_mountpoints_for_the_inbuilt_bubblewrap() {
 	[ ! -f ./"$APP".AppDir/.junest/etc/asound.conf ] && touch ./"$APP".AppDir/.junest/etc/asound.conf
 }
 
+# Fix libcurl
+rm -f ./"$APP".AppDir/.junest/usr/lib/libcurl* && cp -r ./archlinux/.junest/usr/lib/libcurl* ./"$APP".AppDir/.junest/usr/lib/
+
 _remove_more_bloatwares
 find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
 find ./"$APP".AppDir/.junest/usr -type f -regex '.*\.so.*' -exec strip --strip-debug {} \;
@@ -559,10 +562,10 @@ if test -f ./*.AppImage; then rm -Rf ./*archimage*.AppImage; fi
 
 APPNAME=$(cat ./"$APP".AppDir/*.desktop | grep 'Name=' | head -1 | cut -c 6- | sed 's/ /-/g')
 REPO="OBS-Studio-appimage"
-TAG="continuous"
+TAG="continuous-full"
 VERSION="$VERSION"
 UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|$REPO|$TAG|*x86_64.AppImage.zsync"
 
 ARCH=x86_64 ./appimagetool --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \
 	-u "$UPINFO" \
-	./"$APP".AppDir "$APPNAME"_"$VERSION"-archimage4.3-x86_64.AppImage
+	./"$APP".AppDir "$APPNAME"-FULL_"$VERSION"-archimage4.3-x86_64.AppImage
