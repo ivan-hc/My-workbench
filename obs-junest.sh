@@ -107,13 +107,13 @@ fi
 ./.local/share/junest/bin/junest -- yay -Syy
 #./.local/share/junest/bin/junest -- gpg --keyserver keyserver.ubuntu.com --recv-key C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF # UNCOMMENT IF YOU USE THE AUR
 if [ -n "$BASICSTUFF" ]; then
-	./.local/share/junest/bin/junest -- yay --noconfirm -S "$BASICSTUFF"
+	./.local/share/junest/bin/junest -- yay --noconfirm -S $BASICSTUFF
 fi
 if [ -n "$COMPILERS" ]; then
-	./.local/share/junest/bin/junest -- yay --noconfirm -S "$COMPILERS"
+	./.local/share/junest/bin/junest -- yay --noconfirm -S $COMPILERS
 fi
 if [ -n "$DEPENDENCES" ]; then
-	./.local/share/junest/bin/junest -- yay --noconfirm -S "$DEPENDENCES"
+	./.local/share/junest/bin/junest -- yay --noconfirm -S $DEPENDENCES
 fi
 if [ -n "$APP" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S alsa-lib gtk3 xapp
