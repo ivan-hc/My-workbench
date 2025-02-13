@@ -80,7 +80,7 @@ _install_junest() {
 	rm -f junest-x86_64.tar.gz
 	echo " Apply patches to PacMan..."
 	#_enable_multilib
-	#_enable_chaoticaur
+	_enable_chaoticaur
 	_custom_mirrorlist
 	_bypass_signature_check_level
 
@@ -112,12 +112,13 @@ fi
 if [ -n "$COMPILERS" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S $COMPILERS
 fi
+DEPENDENCES="$DEPENDENCES $(./.local/share/junest/bin/junest -- yay -Si "$APP" | grep -i 'depends on' | cut -d ':' -f 2 | xargs)"
 if [ -n "$DEPENDENCES" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S $DEPENDENCES
 fi
 if [ -n "$APP" ]; then
 	./.local/share/junest/bin/junest -- yay --noconfirm -S alsa-lib gtk3 xapp
-	./.local/share/junest/bin/junest -- yay --noconfirm -S "$APP"
+	./.local/share/junest/bin/junest -- yay --noconfirm -Sa "$APP"
 	./.local/share/junest/bin/junest -- glib-compile-schemas /usr/share/glib-2.0/schemas/
 else
 	echo "No app found, exiting"; exit 1
