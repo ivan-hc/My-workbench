@@ -2,7 +2,7 @@
 
 APP=obs-studio-browser
 BIN="obs" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="python" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+DEPENDENCES="python leancrypto" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 BASICSTUFF="binutils debugedit gzip"
 COMPILERS="base-devel"
 
@@ -15,8 +15,8 @@ SHARESAVED="glvnd"
 lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libxkbfile.so libXrandr p11 pk"
 LIBSAVED="EGL libDeckLinkAPI libdrm libedit libfdk libFLAC.so libglslang-default-resource-limits.so libLLVM libluajit libpxbackend libsensors \
-libSM.so libsodium.so libsoxr.so libva libwayland libxcb libxshmfence qt v4l libSDL \
-libleancrypto $lib_audio_keywords $lib_browser_launcher"
+libSM.so libsodium.so libsoxr.so libva libwayland libxcb libuuid libxshmfence qt v4l libSDL \
+libleancrypto libcjson  $lib_audio_keywords $lib_browser_launcher"
 
 [ -n "$lib_browser_launcher" ] && DEPENDENCES="$DEPENDENCES xapp hicolor-icon-theme"
 
@@ -223,7 +223,7 @@ else
    export PATH="$PATH":"$HERE"/.local/share/junest/bin
 fi
 
-[ -z "$NVIDIA_ON" ] && NVIDIA_ON=1
+[ -z "$NVIDIA_ON" ] && NVIDIA_ON=0
 if [ "$NVIDIA_ON" = 1 ]; then
    DATADIR="${XDG_DATA_HOME:-$HOME/.local/share}"
    CONTY_DIR="${DATADIR}/Conty/overlayfs_shared"
@@ -282,7 +282,7 @@ chmod a+x "$APP".AppDir/AppRun
 #	EXTRACT PACKAGES
 #############################################################################
 
-[ -z "$extraction_count" ] && extraction_count=0
+[ -z "$extraction_count" ] && extraction_count=1
 [ ! -f ./autodeps ] && echo "$extraction_count" > ./autodeps
 [ -f ./autodeps ] && autodeps=$(cat ./autodeps)
 [ "$autodeps" != "$extraction_count" ] && rm -Rf ./deps ./packages && echo "$extraction_count" > ./autodeps
