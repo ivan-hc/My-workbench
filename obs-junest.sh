@@ -223,7 +223,7 @@ else
    export PATH="$PATH":"$HERE"/.local/share/junest/bin
 fi
 
-[ -z "$NVIDIA_ON" ] && NVIDIA_ON=0
+[ -z "$NVIDIA_ON" ] && NVIDIA_ON=1
 if [ "$NVIDIA_ON" = 1 ]; then
    DATADIR="${XDG_DATA_HOME:-$HOME/.local/share}"
    CONTY_DIR="${DATADIR}/Conty/overlayfs_shared"
@@ -282,7 +282,7 @@ chmod a+x "$APP".AppDir/AppRun
 #	EXTRACT PACKAGES
 #############################################################################
 
-[ -z "$extraction_count" ] && extraction_count=1
+[ -z "$extraction_count" ] && extraction_count=0
 [ ! -f ./autodeps ] && echo "$extraction_count" > ./autodeps
 [ -f ./autodeps ] && autodeps=$(cat ./autodeps)
 [ "$autodeps" != "$extraction_count" ] && rm -Rf ./deps ./packages && echo "$extraction_count" > ./autodeps
