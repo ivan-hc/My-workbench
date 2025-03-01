@@ -17,9 +17,9 @@ jobs:
     - name: build
       if: always()
       run: |
-        sudo pacman --noconfirm -Syy
-        sudo pacman --noconfirm -Syu
-        sudo pacman --noconfirm -S base-devel
+        pacman --noconfirm -Syy
+        pacman --noconfirm -Syu
+        pacman --noconfirm -S base-devel
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         junest build [-n]
