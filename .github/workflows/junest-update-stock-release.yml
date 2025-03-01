@@ -19,7 +19,9 @@ jobs:
       run: |
         pacman --noconfirm -Syy
         pacman --noconfirm -Syu
-        pacman --noconfirm -S base-devel bubblewrap git
+        pacman --noconfirm -S base-devel git
+        export DBIN_INSTALL_DIR="/usr/local/bin"
+        wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- --install "/usr/local/bin/dbin" add bwrap
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         bwrap --dev-bind-try / / --uid 0 --gid 0 -- junest build -n
