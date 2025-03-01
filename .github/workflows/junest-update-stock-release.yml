@@ -19,8 +19,8 @@ jobs:
       if: always()
       run: |
         useradd -m -G wheel builder
-        find / -maxdepth 1 -uid OLDUID -exec chown --recursive --verbose 1001 '{}' ';'
-        chown --recursive --verbose 1001 .  # fix checkout uid
+        find / -maxdepth 1 -uid OLDUID -exec chown --recursive --verbose builder '{}' ';'
+        chown --recursive --verbose builder .  # fix checkout uid
         sudo pacman --noconfirm -Syy
         sudo pacman --noconfirm -Syu
         sudo pacman --noconfirm -S base-devel git
