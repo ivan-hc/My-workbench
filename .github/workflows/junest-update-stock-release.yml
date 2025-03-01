@@ -11,13 +11,16 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: archlinux
-      options: --user 1001
+      options: --user=root
     steps:
     - uses: actions/checkout@v4
 
     - name: build
       if: always()
       run: |
+        usermod --uid 1001 builder
+        find / -maxdepth 1 -uid OLDUID -exec chown --recursive --verbose 1001 '{}' ';'
+        chown --recursive --verbose 1001 .  # fix checkout uid
         sudo pacman --noconfirm -Syy
         sudo pacman --noconfirm -Syu
         sudo pacman --noconfirm -S base-devel git
