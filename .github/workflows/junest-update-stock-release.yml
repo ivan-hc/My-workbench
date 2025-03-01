@@ -22,7 +22,7 @@ jobs:
         pacman --noconfirm -S base-devel git
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
-        junest build [-n]
+        junest build -n
         mkdir dist
         mv *tar.gz dist/
 
