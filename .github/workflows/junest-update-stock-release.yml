@@ -21,6 +21,7 @@ jobs:
         pacman --noconfirm -Syu
         pacman --noconfirm -S base-devel bubblewrap git
         sysctl -w kernel.unprivileged_userns_clone=1
+        sysctl -w user.max_user_namespaces=49152
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         bwrap --dev-bind-try / / --uid 0 --gid 0 -- junest build -n
