@@ -17,13 +17,12 @@ jobs:
     - name: build
       if: always()
       run: |
-        curl -k https://raw.githubusercontent.com/fsquillace/junest-builder/master/setup_builder.sh | sed 's/yaourt/yay/g' | bash
-        #pacman --noconfirm -Syy
-        #pacman --noconfirm -Syu
-        #pacman --noconfirm -S base-devel git
-        #git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
-        #export PATH=~/.local/share/junest/bin:$PATH
-        #junest build -n
+        pacman --noconfirm -Syy
+        pacman --noconfirm -Syu
+        pacman --noconfirm -S base-devel git
+        git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
+        export PATH=~/.local/share/junest/bin:$PATH
+        junest build -n
         mkdir dist
         mv *tar.gz dist/
 
