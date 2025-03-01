@@ -19,9 +19,7 @@ jobs:
       run: |
         pacman --noconfirm -Syy
         pacman --noconfirm -Syu
-        pacman --noconfirm -S base-devel git wget
-        export DBIN_INSTALL_DIR="/usr/local/bin"
-        wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- --install "/usr/local/bin/dbin" add bwrap
+        pacman --noconfirm -S base-devel bubblewrap git
         sysctl -w kernel.unprivileged_userns_clone=1
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
