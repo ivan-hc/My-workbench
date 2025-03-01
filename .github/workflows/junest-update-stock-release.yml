@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: docker.io/archlinux/archlinux:latest:base-devel
+      image: docker.io/archlinux/archlinux:base-devel
       options: --user 1000:1000 --privileged
     steps:
     - uses: actions/checkout@v4
