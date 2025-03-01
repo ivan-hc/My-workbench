@@ -18,8 +18,10 @@ jobs:
     - name: build
       if: always()
       run: |
-        RUN pacman -Syu
-        RUN pacman -S git
+        su
+        pacman -Syu
+        pacman -S git
+        exit
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         junest build -n
