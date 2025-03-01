@@ -19,10 +19,10 @@ jobs:
       run: |
         pacman --noconfirm -Syy
         pacman --noconfirm -Syu
-        pacman --noconfirm -S base-devel git
+        pacman --noconfirm -S base-devel bubblewrap git
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
-        junest build -n
+        bwrap --dev-bind-try / / --uid 0 --gid 0 -- junest build -n
         mkdir dist
         mv *tar.gz dist/
 
