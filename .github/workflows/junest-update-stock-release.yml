@@ -8,19 +8,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container:
+      image: archlinux
     steps:
     - uses: actions/checkout@v3
 
     - name: build
       if: always()
       run: |
-        sudo apt update
-        wget https://raw.githubusercontent.com/ivan-hc/My-workbench/main/junest-builder.sh
-        chmod a+x ./junest-builder.sh
-        ./junest-builder.sh
-        rm -R -f ./*.tar.gz
-        tar -czvf junest-x86_64.tar.gz -C ./.junest/ .
+        sudo pacman --noconfirm -Syy
+        sudo pacman --noconfirm -Syu
+        sudo pacman --noconfirm -S base-devel
+        git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
+        export PATH=~/.local/share/junest/bin:$PATH
+        junest build [-n]
         mkdir dist
         mv *tar.gz dist/
 
