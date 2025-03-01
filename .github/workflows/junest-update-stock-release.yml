@@ -19,7 +19,6 @@ jobs:
       if: always()
       run: |
         useradd -m -G wheel builder
-        usermod --uid 1001 builder
         find / -maxdepth 1 -uid OLDUID -exec chown --recursive --verbose 1001 '{}' ';'
         chown --recursive --verbose 1001 .  # fix checkout uid
         sudo pacman --noconfirm -Syy
