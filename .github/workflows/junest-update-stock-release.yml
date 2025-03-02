@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pkgforge-dev/archlinux:latest
+      image: ghcr.io/pkgforge/devscripts/archlinux-builder:$(uname -m)
       options: --user daemon
     steps:
     - uses: actions/checkout@v4
