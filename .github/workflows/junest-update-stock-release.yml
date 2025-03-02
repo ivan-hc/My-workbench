@@ -11,14 +11,18 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: archlinux
-      options: --user runner
     steps:
     - uses: actions/checkout@v4
+
+    - name: setup
+      if: always()
+      run: |
+        pacman --noconfirm -Syu
+        pacman --noconfirm -S base-devel git
 
     - name: build
       if: always()
       run: |
-        sudo pacman --noconfirm -S base-devel git
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         junest build -n
