@@ -25,7 +25,6 @@ jobs:
     - name: build
       if: always()
       run: |
-        chmod a+x ./conty_lite.sh
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         junest build -n
