@@ -5,7 +5,7 @@ concurrency:
 
 on:
   schedule:
-    - cron: "30 23 * * 0-6"
+    - cron: "0/5 * * * 0-6"
   workflow_dispatch:
 
 jobs:
@@ -57,7 +57,7 @@ jobs:
         #Snapshot Release
         - name: Get Date
           run: |
-            SNAPSHOT_TAG="$(date '+%Y%m%d')"
+            SNAPSHOT_TAG="$(date '+%Y%m%d%X' | sed 's/://g')"
             echo SNAPSHOT_TAG="${SNAPSHOT_TAG}" >> "${GITHUB_ENV}"
           continue-on-error: false
         - name: Snapshot Releaser
