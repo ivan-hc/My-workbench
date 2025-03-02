@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: image: ghcr.io/pkgforge-dev/archlinux:latest
+      image: ghcr.io/pkgforge-dev/archlinux:latest
       options: --user runner
     steps:
     - uses: actions/checkout@v4
