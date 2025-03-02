@@ -28,8 +28,8 @@ jobs:
         wget https://github.com/Kron4ek/Conty/releases/download/1.27.2/conty_lite.sh
         chmod a+x ./conty_lite.sh
         ./conty_lite.sh git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
-        ./conty_lite.sh export PATH=~/.local/share/junest/bin:$PATH
-        ./conty_lite.sh junest build -n
+        #./conty_lite.sh export PATH=~/.local/share/junest/bin:$PATH
+        ./conty_lite.sh ~/.local/share/junest build -n
         mkdir dist
         mv *tar.gz dist/
 
