@@ -9,24 +9,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container:
-      image: archlinux
-      #options: --user 1000:1000
+    #container:
+    #  image: archlinux/archlinux:latest
+    #  options: --privileged
+    #  options: --user 1000:1000
     steps:
     - uses: actions/checkout@v4
 
-    - name: setup
-      if: always()
-      run: |
-        pacman --noconfirm -Syu
-        pacman --noconfirm -S base-devel git
+    #- name: setup
+    #  if: always()
+    #  run: |
+    #    pacman --noconfirm -Syu
+    #    pacman --noconfirm -S base-devel git
 
     - name: build
       if: always()
       run: |
-        git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
-        export PATH=~/.local/share/junest/bin:$PATH
-        junest build -n
+        wget https://github.com/Kron4ek/Conty/releases/download/1.27.2/conty_lite.sh
+        chmod a+x ./conty_lite.sh
+        ./conty_lite.sh git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
+        ./conty_lite.sh export PATH=~/.local/share/junest/bin:$PATH
+        ./conty_lite.sh junest build -n
         mkdir dist
         mv *tar.gz dist/
 
