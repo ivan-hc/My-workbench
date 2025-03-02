@@ -9,16 +9,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    #container:
-    #  image: ghcr.io/pkgforge/devscripts/archlinux-builder:$(uname -m)
-    #  options: --user daemon
+    container:
+      image: image: ghcr.io/pkgforge-dev/archlinux:latest
+      options: --user runner
     steps:
     - uses: actions/checkout@v4
 
     - name: build
       if: always()
       run: |
-        docker pull ghcr.io/pkgforge/devscripts/archlinux-builder:$(uname -m)
         sudo pacman --noconfirm -S git
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
