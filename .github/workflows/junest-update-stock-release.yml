@@ -18,6 +18,7 @@ jobs:
     - name: build
       if: always()
       run: |
+        pacman --noconfirm -S git
         git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
         export PATH=~/.local/share/junest/bin:$PATH
         junest build -n
