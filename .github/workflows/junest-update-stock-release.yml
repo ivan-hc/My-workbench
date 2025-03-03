@@ -4,57 +4,82 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
+  #pull_request:
+  #  types: [opened, synchronize, reopened]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    #container:
-    #  image: archlinux/archlinux:latest
-    #  options: --privileged
-    #  options: --user 1000:1000
+    name: build junest (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          # TODO: pacstrap install yay and qemu-user-static (there is a arch mismatch)
+          # error: failed to prepare transaction (package architecture is not valid)
+          # :: package qemu-user-static-bin-alt-5.2-6-x86_64 does not have a valid architecture
+          # :: package yay-git-12.4.2.r6.g138c2dd6-1-x86_64 does not have a valid architecture
+          # - arch: aarch64
+          #   platform: linux/arm64
+          #   runs-on: ubuntu-24.04-arm
+          - arch: x86_64
+            platform: linux/amd64
+            runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/pkgforge/devscripts/archlinux-builder:${{ matrix.arch }}
+      options: --user runner --tmpfs /tmp:exec --privileged
     steps:
-    - uses: actions/checkout@v4
+      - name: build
+        run: |
+          mkdir -p /tmp/dist && cd /tmp/dist
+          git clone https://github.com/fsquillace/junest.git
+          ./junest/bin/junest build -n
 
-    #- name: setup
-    #  if: always()
-    #  run: |
-    #    pacman --noconfirm -Syu
-    #    pacman --noconfirm -S base-devel git
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: junest-x86_64.tar.gz
+          path: "/tmp/dist"
+          retention-days: 7
+        continue-on-error: true
 
-    - name: build
-      if: always()
-      run: |
-        git clone https://github.com/fsquillace/junest.git ~/.local/share/junest
-        export PATH=~/.local/share/junest/bin:$PATH
-        junest build -n
-        mkdir dist
-        mv *tar.gz dist/
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4.4.0
-      with:
-        name: junest-x86_64.tar.gz
-        path: 'dist'
-        
   release:
-      needs: [build]
-      permissions: write-all
-      runs-on: ubuntu-latest
+    needs:
+      - build
+    permissions: write-all
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/download-artifact@v4.1.8
-          with:
-            name: junest-x86_64.tar.gz
+    steps:
+      - uses: actions/download-artifact@v4.1.8
+        with:
+          name: junest-x86_64.tar.gz
 
-        - name: release
-          uses: marvinpinto/action-automatic-releases@latest
-          with:
-            title: Continuous build
-            automatic_release_tag: continuous
-            prerelease: false
-            draft: false
-            files: |
-              junest-x86_64.tar.gz
-            repo_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          title: Continuous build
+          automatic_release_tag: continuous
+          prerelease: false
+          draft: false
+          files: |
+            junest-x86_64.tar.gz
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
 
+        #Snapshot Release
+      - name: Get Date
+        run: |
+          SNAPSHOT_TAG="$(date '+%Y%m%d')"
+          echo SNAPSHOT_TAG="${SNAPSHOT_TAG}" >> "${GITHUB_ENV}"
+        continue-on-error: false
+      - name: Snapshot Releaser
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ env.SNAPSHOT_TAG}}"
+          tag_name: "${{ env.SNAPSHOT_TAG}}"
+          prerelease: false
+          draft: false
+          generate_release_notes: false
+          make_latest: false
+          files: |
+            junest-x86_64.tar.gz
+        continue-on-error: false
