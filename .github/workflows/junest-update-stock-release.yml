@@ -61,7 +61,7 @@ jobs:
         with:
           title: Continuous stock release
           automatic_release_tag: continuous-stock
-          prerelease: false
+          prerelease: true
           draft: false
           files: |
             junest-x86_64.tar.gz
