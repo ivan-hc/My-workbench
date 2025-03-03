@@ -1,4 +1,4 @@
-name: JuNest Builder
+name: JuNest versioner
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
