@@ -40,8 +40,8 @@ jobs:
         with:
           name: junest-x86_64.tar.gz
           path: "/tmp/dist"
-        #  retention-days: 7
-        #continue-on-error: true
+          retention-days: 7
+        continue-on-error: true
 
   release:
     needs:
