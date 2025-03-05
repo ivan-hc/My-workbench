@@ -33,5 +33,6 @@ jobs:
             prerelease: false
             draft: false
             generate_release_notes: false
+            include_message: "See https://github.com/ivan-hc/AM/releases/tag/${{ env.NEW_TAG}}"
             make_latest: true
           continue-on-error: false
