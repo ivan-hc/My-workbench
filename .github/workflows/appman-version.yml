@@ -24,6 +24,7 @@ jobs:
             else
               echo NEW_TAG="${APPMAN_TAG}" >> "${GITHUB_ENV}"
             fi
+            echo "See https://github.com/ivan-hc/AM/releases/tag/${{ env.NEW_TAG}}" > release-note.txt
           continue-on-error: false
         - name: Snapshot Releaser
           uses: softprops/action-gh-release@v2
@@ -33,6 +34,6 @@ jobs:
             prerelease: false
             draft: false
             generate_release_notes: false
-            include_message: "See https://github.com/ivan-hc/AM/releases/tag/${{ env.NEW_TAG}}"
+            body_path: release-note.txt
             make_latest: true
           continue-on-error: false
