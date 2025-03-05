@@ -28,7 +28,7 @@ jobs:
         - name: Snapshot Releaser
           uses: softprops/action-gh-release@v2
           with:
-            name: "${{ env.NEW_TAG}}"
+            name: "AppMan ${{ env.NEW_TAG}}"
             tag_name: "${{ env.NEW_TAG}}"
             prerelease: false
             draft: false
