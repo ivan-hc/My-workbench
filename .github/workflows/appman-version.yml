@@ -1,0 +1,37 @@
+name: AppMan Version
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  #schedule:
+  #  - cron: "30 23 * * 0-6"
+  workflow_dispatch:
+
+jobs:
+   release:
+      permissions: write-all
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/download-artifact@v4.1.8
+        - name: Get Date
+          run: |
+            AM_TAG="$(curl -Ls https://api.github.com/repos/ivan-hc/AM/releases/latest | jq '.' | grep "tag_name" | tr '" ' '\n' | grep [0-9])"
+            APPMAN_TAG=$(curl -Ls https://api.github.com/repos/ivan-hc/AppMan/releases/latest | jq '.' | grep "tag_name" | tr '" ' '\n' | grep [0-9])
+            if [ "$AM_TAG" != "$APPMAN_TAG" ]; then
+              echo NEW_TAG="${AM_TAG}" >> "${GITHUB_ENV}"
+            else
+              echo NEW_TAG="${APPMAN_TAG}" >> "${GITHUB_ENV}"
+            fi
+          continue-on-error: false
+        - name: Snapshot Releaser
+          uses: softprops/action-gh-release@v2
+          with:
+            name: "${{ env.NEW_TAG}}"
+            tag_name: "${{ env.NEW_TAG}}"
+            prerelease: false
+            draft: false
+            generate_release_notes: false
+            make_latest: true
+          continue-on-error: false
