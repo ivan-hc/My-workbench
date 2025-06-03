@@ -11,16 +11,16 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: archlinux
     name: archlinux
     
     steps:
+      - name: Use Docker in rootless mode.
+        uses: ScribeMD/rootless-docker@0.2.2
       - name: Install system dependencies
         run: |
           pacman --noconfirm -Syu base-devel git make python3 which diffutils sudo --needed
-      - name: Use Docker in rootless mode.
-        uses: ScribeMD/rootless-docker@0.2.2
       - name: build
         run: |
           mkdir -p /tmp/dist && cd /tmp/dist
