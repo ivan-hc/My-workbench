@@ -10,24 +10,11 @@ on:
 
 jobs:
   build:
-    name: build junest (${{ matrix.arch }})
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      matrix:
-        include:
-          # TODO: pacstrap install yay and qemu-user-static (there is a arch mismatch)
-          # error: failed to prepare transaction (package architecture is not valid)
-          # :: package qemu-user-static-bin-alt-5.2-6-x86_64 does not have a valid architecture
-          # :: package yay-git-12.4.2.r6.g138c2dd6-1-x86_64 does not have a valid architecture
-          # - arch: aarch64
-          #   platform: linux/arm64
-          #   runs-on: ubuntu-24.04-arm
-          - arch: x86_64
-            platform: linux/amd64
-            runs-on: ubuntu-24.04
-    container:
-      image: docker.io/library/archlinux:latest
-      options: --user runner --tmpfs /tmp:exec --privileged
+
+    runs-on: ubuntu-latest
+    container: archlinux
+    name: archlinux
+    
     steps:
       - name: build
         run: |
