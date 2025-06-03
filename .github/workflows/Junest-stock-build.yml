@@ -16,6 +16,8 @@ jobs:
     name: archlinux
     
     steps:
+      - name: Use Docker in rootless mode.
+        uses: ScribeMD/rootless-docker@0.2.2
       - name: Install system dependencies
         run: |
           pacman --noconfirm -Syu base-devel git make python3 which diffutils --needed
