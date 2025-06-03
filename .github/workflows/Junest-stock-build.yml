@@ -16,6 +16,9 @@ jobs:
     name: archlinux
     
     steps:
+      - name: Install system dependencies
+        run: |
+          pacman --noconfirm -Syu base-devel git make python3 which diffutils --needed
       - name: build
         run: |
           mkdir -p /tmp/dist && cd /tmp/dist
