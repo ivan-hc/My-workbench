@@ -4,30 +4,31 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  #schedule:
-  #  - cron: "30 22 * * 0-6"
+  schedule:
+    - cron: "30 22 * * 0-6"
   workflow_dispatch:
 
 jobs:
-
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: ubuntu patch
-        run: |
-          sudo systemctl disable --now docker.service docker.socket
-          sudo rm /var/run/docker.sock
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-  
   build:
-    runs-on: ubuntu-latest
-    container: archlinux
-    name: archlinux
+    name: build junest (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          # TODO: pacstrap install yay and qemu-user-static (there is a arch mismatch)
+          # error: failed to prepare transaction (package architecture is not valid)
+          # :: package qemu-user-static-bin-alt-5.2-6-x86_64 does not have a valid architecture
+          # :: package yay-git-12.4.2.r6.g138c2dd6-1-x86_64 does not have a valid architecture
+          # - arch: aarch64
+          #   platform: linux/arm64
+          #   runs-on: ubuntu-24.04-arm
+          - arch: x86_64
+            platform: linux/amd64
+            runs-on: ubuntu-24.04
+    container:
+      image: docker.io/library/archlinux:latest
+      options: --user runner --tmpfs /tmp:exec --privileged
     steps:
-      - name: Install system dependencies
-        run: |
-          pacman --noconfirm -Syu base-devel git make python3 which diffutils sudo --needed
       - name: build
         run: |
           mkdir -p /tmp/dist && cd /tmp/dist
