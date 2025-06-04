@@ -9,15 +9,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
 
-    runs-on: ubuntu-22.04
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ubuntu patch
+        run: |
+          sudo systemctl disable --now docker.service docker.socket
+          sudo rm /var/run/docker.sock
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+  
+  build:
+    runs-on: ubuntu-latest
     container: archlinux
     name: archlinux
-    
     steps:
-      - name: Use Docker in rootless mode.
-        uses: ScribeMD/rootless-docker@0.2.2
       - name: Install system dependencies
         run: |
           pacman --noconfirm -Syu base-devel git make python3 which diffutils sudo --needed
