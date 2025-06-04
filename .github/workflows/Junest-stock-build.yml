@@ -4,14 +4,14 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  schedule:
-    - cron: "30 22 * * 0-6"
+  #schedule:
+  #  - cron: "30 22 * * 0-6"
   workflow_dispatch:
 
 jobs:
   build:
     name: build junest (${{ matrix.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
         include:
@@ -24,9 +24,9 @@ jobs:
           #   runs-on: ubuntu-24.04-arm
           - arch: x86_64
             platform: linux/amd64
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-24.04
     container:
-      image: docker.io/library/archlinux:latest
+      image: ghcr.io/pkgforge/devscripts/archlinux-builder:${{ matrix.arch }}
       options: --user runner --tmpfs /tmp:exec --privileged
     steps:
       - name: build
