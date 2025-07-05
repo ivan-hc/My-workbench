@@ -4,7 +4,8 @@ APP=bottles
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
 lib32_pkgs="lib32-alsa-lib lib32-alsa-plugins lib32-gamemode lib32-giflib lib32-gnutls \
 lib32-gst-plugins-base lib32-gst-plugins-good lib32-gtk3 lib32-libjpeg-turbo lib32-libldap lib32-libpng lib32-libpulse lib32-libva lib32-libxcomposite lib32-libxinerama lib32-libxslt lib32-mpg123 lib32-openal lib32-sdl2 lib32-v4l-utils lib32-vkd3d"
-DEPENDENCES="7zip alsa-lib gamemode ibus libibus libportal libpulse nss-mdns pipewire procps-ng xterm $lib32_pkgs" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+mesa_libs="mesa lib32-mesa llvm lib32-llvm-libs"
+DEPENDENCES="7zip alsa-lib gamemode ibus libibus libportal libpulse nss-mdns pipewire procps-ng xterm $lib32_pkgs $mesa_libs" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 BASICSTUFF="binutils debugedit gzip"
 COMPILERS="base-devel"
 
@@ -18,7 +19,7 @@ lib_audio_keywords="alsa jack pipewire pulse"
 lib_browser_launcher="gio-launch-desktop libasound.so libatk-bridge libatspi libcloudproviders libdb- libdl.so libedit libepoxy libgtk-3.so.0 libjson-glib libnssutil libpthread.so librt.so libtinysparql libwayland-cursor libX11-xcb.so libxapp-gtk3-module.so libXcursor libXdamage libXi.so libxkbfile.so libXrandr p11 pk"
 LIBSAVED="gdk-pixbuf gio girepository ibus idna libadwaita libFLAC libGL.so libgtk- libibus liblzo \
 libxmlb.so libmp3lame libnss_mdns libproxy libstemmer.so libvorbis ordlookup pefile urllib vkbasalt \
-libportal.so libSDL libXaw libSM $lib_audio_keywords $lib_browser_launcher"
+libportal.so libSDL libXaw libSM libgallium libLLVM $lib_audio_keywords $lib_browser_launcher"
 
 [ -n "$lib_browser_launcher" ] && DEPENDENCES="$DEPENDENCES xapp hicolor-icon-theme"
 
@@ -346,7 +347,7 @@ _extract_package() {
 			tar fx "$pkg_full_path" -C ./deps/ --warning=no-unknown-keyword
 			echo "$pkgname" >> ./packages
 		fi
-		[ -n "$lib_browser_launcher" ] && [[ "$arg" =~ (hicolor-icon-theme|xterm|xapp|python|python-gobject|python-pycurl|procps-ng|patool|p7zip|libportal|imagemagick|icoextract|gamemode|cabextract|7zip) ]] && tar fx "$pkg_full_path" -C ./base/ --warning=no-unknown-keyword --exclude='.PKGINFO'
+		[ -n "$lib_browser_launcher" ] && [[ "$arg" =~ (hicolor-icon-theme|xterm|xapp|python|python-gobject|python-pycurl|procps-ng|patool|p7zip|libportal|imagemagick|icoextract|gamemode|cabextract|7zip|mesa) ]] && tar fx "$pkg_full_path" -C ./base/ --warning=no-unknown-keyword --exclude='.PKGINFO'
 	fi
 }
 
@@ -539,12 +540,12 @@ _remove_more_bloatwares() {
 	rm -Rf ./"$APP".AppDir/.junest/usr/include # files related to the compiler
 	rm -Rf ./"$APP".AppDir/.junest/usr/share/man # AppImages are not ment to have man command
 	rm -Rf ./"$APP".AppDir/.junest/usr/lib/python*/__pycache__/* # if python is installed, removing this directory can save several megabytes
-	rm -Rf ./"$APP".AppDir/.junest/usr/lib32/libgallium*
+	#rm -Rf ./"$APP".AppDir/.junest/usr/lib32/libgallium*
 	rm -Rf ./"$APP".AppDir/.junest/usr/lib32/libgo.so*
-	rm -Rf ./"$APP".AppDir/.junest/usr/lib32/libLLVM*
-	rm -Rf ./"$APP".AppDir/.junest/usr/lib/libgallium*
+	#rm -Rf ./"$APP".AppDir/.junest/usr/lib32/libLLVM*
+	#rm -Rf ./"$APP".AppDir/.junest/usr/lib/libgallium*
 	rm -Rf ./"$APP".AppDir/.junest/usr/lib/libgo.so*
-	rm -Rf ./"$APP".AppDir/.junest/usr/lib/libLLVM* # included in the compilation phase, can sometimes be excluded for daily use
+	#rm -Rf ./"$APP".AppDir/.junest/usr/lib/libLLVM* # included in the compilation phase, can sometimes be excluded for daily use
 	rm -Rf ./"$APP".AppDir/.junest/var/* # remove all packages downloaded with the package manager
 }
 
