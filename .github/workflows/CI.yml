@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: anki
-            automatic_release_tag: anki
+            title: obs-full
+            automatic_release_tag: obs-full
             prerelease: false
             draft: false
             files: |
