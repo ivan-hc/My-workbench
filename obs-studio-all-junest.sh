@@ -572,17 +572,42 @@ find ./"$APP".AppDir/.junest/usr -type d -empty -delete
 _enable_mountpoints_for_the_inbuilt_bubblewrap
 
 #############################################################################
-#	CREATE THE APPIMAGE
+#	CREATE THE APPIMAGE - FULL VERSION
 #############################################################################
 
-if test -f ./*.AppImage; then rm -Rf ./*archimage*.AppImage; fi
+if test -f ./*full*.AppImage; then rm -Rf ./*archimage*full*.AppImage; fi
 
 APPNAME=$(cat ./"$APP".AppDir/*.desktop | grep 'Name=' | head -1 | cut -c 6- | sed 's/ /-/g')
 REPO="OBS-Studio-appimage"
-TAG="continuous-full"
+TAG="latest"
 VERSION="$VERSION"
-UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|$REPO|$TAG|*x86_64.AppImage.zsync"
+UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|$REPO|$TAG|*full-x86_64.AppImage.zsync"
 
 ARCH=x86_64 ./appimagetool --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \
 	-u "$UPINFO" \
-	./"$APP".AppDir "$APPNAME"-FULL_"$VERSION"-archimage4.3-x86_64.AppImage
+	./"$APP".AppDir "$APPNAME"_"$VERSION"-archimage4.3-full-x86_64.AppImage
+
+if ! test -f ./*full*.AppImage; then exit 1; fi
+
+#############################################################################
+#	CREATE THE APPIMAGE - LITE VERSION
+#############################################################################
+
+rm -Rf ./"$APP".AppDir/.junest/usr/lib/obs-plugins/libcef.so
+rm -Rf ./"$APP".AppDir/.junest/usr/lib/obs-plugins/obs-browser*
+find ./"$APP".AppDir/.junest/usr/lib ./"$APP".AppDir/.junest/usr/lib32 -type f -regex '.*\.a' -exec rm -f {} \; 2>/dev/null
+find ./"$APP".AppDir/.junest/usr -type f -regex '.*\.so.*' -exec strip --strip-debug {} \;
+find ./"$APP".AppDir/.junest/usr/bin -type f ! -regex '.*\.so.*' -exec strip --strip-unneeded {} \;
+find ./"$APP".AppDir/.junest/usr -type d -empty -delete
+_enable_mountpoints_for_the_inbuilt_bubblewrap
+
+if test -f ./*lite*.AppImage; then rm -Rf ./*archimage*lite*.AppImage; fi
+
+UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|$REPO|$TAG|*lite-x86_64.AppImage.zsync"
+
+ARCH=x86_64 ./appimagetool --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \
+	-u "$UPINFO" \
+	./"$APP".AppDir "$APPNAME"_"$VERSION"-archimage4.3-lite-x86_64.AppImage
+
+if ! test -f ./*lite*.AppImage; then exit 1; fi
+
