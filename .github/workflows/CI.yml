@@ -1,4 +1,4 @@
-name: obs-full Appimage
+name: obs-studio-all Appimage
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: obs-full
-            automatic_release_tag: obs-full
+            title: obs-studio-all
+            automatic_release_tag: obs-studio-all
             prerelease: false
             draft: false
             files: |
