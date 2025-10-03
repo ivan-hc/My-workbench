@@ -1,4 +1,4 @@
-name: obs-studio-all Appimage
+name: converseen Appimage
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -20,8 +20,8 @@ jobs:
         sudo apt update && sudo apt install desktop-file-utils
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        chmod a+x ./obs-studio-all-junest.sh
-        ./obs-studio-all-junest.sh
+        chmod a+x ./converseen-junest.sh
+        ./converseen-junest.sh
         mkdir dist
         mv *AppImage* dist/
     - name: Upload artifact
@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: obs-studio-all
-            automatic_release_tag: obs-studio-all
+            title: converseen
+            automatic_release_tag: converseen
             prerelease: false
             draft: false
             files: |
