@@ -2,7 +2,7 @@
 
 APP=torcs
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+DEPENDENCES="alsa-lib libpulse torcs-data" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 BASICSTUFF="binutils debugedit gzip"
 COMPILERS="base-devel"
 
@@ -31,7 +31,6 @@ mountpoint_dirs=""
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
 	sed -i 's/.png//g' AppDir/*.desktop
-	# Add here your code
 }
 
 ##########################################################################################################################################################
