@@ -30,7 +30,7 @@ mountpoint_dirs=""
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
-	echo " - None"
+	sed -i 's/.png//g' AppDir/*.desktop
 	# Add here your code
 }
 
