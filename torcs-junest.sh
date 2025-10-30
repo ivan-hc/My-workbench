@@ -62,7 +62,7 @@ _enable_chaoticaur() { CHAOTICAUR_ON="1"; }
 _enable_multilib() { MULTILIB_ON="1"; }
 
 #_enable_archlinuxcn
-_enable_chaoticaur
+#_enable_chaoticaur
 #_enable_multilib
 
 [ -f ../archimage-builder.sh ] && source ../archimage-builder.sh junest-setup "$@"
