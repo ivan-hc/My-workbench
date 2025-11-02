@@ -76,6 +76,8 @@ _JUNEST_CMD -- gpg --keyserver keyserver.ubuntu.com --recv-key C01E1CAD5EA2C4F0B
 
 [ -f ../archimage-builder.sh ] && source ../archimage-builder.sh install "$@"
 
+_JUNEST_CMD -- yay --noconfirm -S  --mflags --skipinteg "$APP"
+
 cd ..
 
 ##########################################################################################################################################################
