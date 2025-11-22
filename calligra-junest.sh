@@ -2,14 +2,14 @@
 
 APP=calligra
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES=$(echo "cauchy fontconfig freetype2 gcc-libs glibc gsl imath karchive kcmutils kcolorscheme kcompletion kconfig kconfigwidgets kcoreaddons kcrash kdbusaddons kdiagram kguiaddons ki18n kiconthemes kio kitemviews knotifications knotifyconfig ktextwidgets kwidgetsaddons kwindowsystem kxmlgui libodfgen librevenge openssl phonon-qt6 qca-qt6 qt6-base qt6-declarative qt6-svg qtkeychain-qt6 sonnet zlib kirigami-addons libetonyek libvisio libwpg libwps poppler pstoedit qqc2-desktop-style qt6-webengine" | tr ' ' '\n' | sort -u | xargs)
+DEPENDENCES=$(echo "qt6ct kvantum python cauchy fontconfig freetype2 gcc-libs glibc gsl imath karchive kcmutils kcolorscheme kcompletion kconfig kconfigwidgets kcoreaddons kcrash kdbusaddons kdiagram kguiaddons ki18n kiconthemes kio kitemviews knotifications knotifyconfig ktextwidgets kwidgetsaddons kwindowsystem kxmlgui libodfgen librevenge openssl phonon-qt6 qca-qt6 qt6-base qt6-declarative qt6-svg qtkeychain-qt6 sonnet zlib kirigami-addons libetonyek libvisio libwpg libwps poppler pstoedit qqc2-desktop-style qt6-webengine" | tr ' ' '\n' | sort -u | xargs)
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
 # Set keywords to searchan include in names of directories and files in /usr/bin (BINSAVED), /usr/share (SHARESAVED) and /usr/lib (LIBSAVED)
 BINSAVED="SAVEBINSPLEASE"
 SHARESAVED="SAVESHAREPLEASE"
-LIBSAVED="SAVELIBSPLEASE"
+LIBSAVED="qml QML"
 
 # Set the items you want to manually REMOVE. Complete the path in /etc/, /usr/bin/, /usr/lib/, /usr/lib/python*/ and /usr/share/ respectively.
 # The "rm" command will take into account the listed object/path and add an asterisk at the end, completing the path to be removed.
@@ -18,14 +18,14 @@ ETC_REMOVED="makepkg.conf pacman"
 BIN_REMOVED="gcc"
 LIB_REMOVED="gcc"
 PYTHON_REMOVED="__pycache__/"
-SHARE_REMOVED="gcc icons/AdwaitaLegacy icons/Adwaita/cursors/ terminfo"
+SHARE_REMOVED="gcc icons/AdwaitaLegacy icons/Adwaita/cursors/ terminfo Kvantum/"
 
 # Set mountpoints, they are ment to be set into the AppRun.
 # Default mounted files are /etc/resolv.conf, /etc/hosts, /etc/nsswitch.conf, /etc/passwd, /etc/group, /etc/machine-id, /etc/asound.conf and /etc/localtime
 # Default mounted directories are /media, /mnt, /opt, /run/media, /usr/lib/locale, /usr/share/fonts, /usr/share/themes, /var, and Nvidia-related directories
 # Do not touch this if you are not sure.
 mountpoint_files=""
-mountpoint_dirs=""
+mountpoint_dirs="/usr/share/Kvantum"
 
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
@@ -104,7 +104,7 @@ cd ..
 rm -f AppDir/AppRun
 
 # Set to "1" if you want to add Nvidia drivers manager in the AppRun
-export NVIDIA_ON=0
+export NVIDIA_ON=1
 
 [ -f ./archimage-builder.sh ] && source ./archimage-builder.sh apprun "$@"
 
