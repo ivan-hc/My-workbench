@@ -16,7 +16,7 @@ LIBSAVED="qml QML"
 # Some keywords and paths are already set. Remove them if you consider them necessary for the AppImage to function properly.
 ETC_REMOVED="makepkg.conf pacman"
 BIN_REMOVED="gcc"
-LIB_REMOVED="gcc"
+LIB_REMOVED="gcc libgo.so"
 PYTHON_REMOVED="__pycache__/"
 SHARE_REMOVED="gcc icons/AdwaitaLegacy icons/Adwaita/cursors/ terminfo Kvantum/"
 
@@ -36,6 +36,10 @@ _post_installation_processes() {
 	if [ ! -f AppDir/"$APP".png ]; then
 		cp -r "$APP".png AppDir/
 	fi
+	echo " - Include only valid locale files"
+	rm -Rf AppDir/.junest/usr/share/locale/*
+	mkdir -p AppDir/.junest/usr/share/locale
+	rsync -av base/usr/share/locale/* AppDir/.junest/usr/share/locale/
 }
 
 extra_bins="calligraconverter calligralauncher calligrasheets calligrastage calligrawords karbon"
