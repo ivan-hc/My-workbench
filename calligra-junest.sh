@@ -2,7 +2,7 @@
 
 APP=calligra
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="cauchy fontconfig freetype2 gcc-libs glibc gsl imath karchive kcmutils kcolorscheme kcompletion kconfig kconfigwidgets kcoreaddons kcrash kdbusaddons kdiagram kguiaddons ki18n kiconthemes kio kitemviews knotifications knotifyconfig ktextwidgets kwidgetsaddons kwindowsystem kxmlgui libodfgen librevenge openssl phonon-qt6 qca-qt6 qt6-base qt6-declarative qt6-svg qtkeychain-qt6 sonnet zlib kirigami-addons libetonyek libvisio libwpg libwps poppler pstoedit qqc2-desktop-style qt6-webengine"
+DEPENDENCES=$(echo "cauchy fontconfig freetype2 gcc-libs glibc gsl imath karchive kcmutils kcolorscheme kcompletion kconfig kconfigwidgets kcoreaddons kcrash kdbusaddons kdiagram kguiaddons ki18n kiconthemes kio kitemviews knotifications knotifyconfig ktextwidgets kwidgetsaddons kwindowsystem kxmlgui libodfgen librevenge openssl phonon-qt6 qca-qt6 qt6-base qt6-declarative qt6-svg qtkeychain-qt6 sonnet zlib kirigami-addons libetonyek libvisio libwpg libwps poppler pstoedit qqc2-desktop-style qt6-webengine" | tr ' ' '\n' | sort -u | xargs)
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
