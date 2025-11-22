@@ -30,14 +30,15 @@ mountpoint_dirs=""
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
-	echo " - None"
-	# Add here your code
+	echo " - Remove unneeded .desktop files"
+	rm -f AppDir/*.desktop
+	cp -r ./*.desktop AppDir/
 }
 
 extra_bins="calligraconverter calligralauncher calligrasheets calligrastage calligrawords karbon"
 
 echo "[Desktop Entry]
-Name=Kalligra
+Name=Calligra
 Exec=$APP
 Icon=calligrawords
 Type=Application
