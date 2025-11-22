@@ -2,7 +2,7 @@
 
 APP=calligra
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+DEPENDENCES="cauchy fontconfig freetype2 gcc-libs glibc gsl imath karchive kcmutils kcolorscheme kcompletion kconfig kconfigwidgets kcoreaddons kcrash kdbusaddons kdiagram kguiaddons ki18n kiconthemes kio kitemviews knotifications knotifyconfig ktextwidgets kwidgetsaddons kwindowsystem kxmlgui libodfgen librevenge openssl phonon-qt6 qca-qt6 qt6-base qt6-declarative qt6-svg qtkeychain-qt6 sonnet zlib kirigami-addons libetonyek libvisio libwpg libwps poppler pstoedit qqc2-desktop-style qt6-webengine"
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
 
@@ -33,6 +33,9 @@ _post_installation_processes() {
 	echo " - Remove unneeded .desktop files"
 	rm -f AppDir/*.desktop
 	cp -r ./*.desktop AppDir/
+	if [ ! -f AppDir/"$APP".png ]; then
+		cp -r "$APP".png AppDir/
+	fi
 }
 
 extra_bins="calligraconverter calligralauncher calligrasheets calligrastage calligrawords karbon"
@@ -40,9 +43,11 @@ extra_bins="calligraconverter calligralauncher calligrasheets calligrastage call
 echo "[Desktop Entry]
 Name=Calligra
 Exec=$APP
-Icon=calligrawords
+Icon=$APP
 Type=Application
 Categories=Office;" > "$APP".desktop
+
+wget -q https://raw.githubusercontent.com/KDE/calligra/refs/heads/master/logo.png -O "$APP".png || exit 1
 
 ##########################################################################################################################################################
 #	SETUP THE ENVIRONMENT
