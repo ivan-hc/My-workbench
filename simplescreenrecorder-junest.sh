@@ -2,12 +2,14 @@
 
 APP=simplescreenrecorder
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
-DEPENDENCES="" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
+QTVER=$(curl -Ls "https://raw.githubusercontent.com/archlinux/aur/refs/heads/simplescreenrecorder/PKGBUILD" | tr '">< ' '\n' | grep -Eo "qt.*base" | head -1)
+[ -z "$QTVER" ] && exit 0; if [ "$QTVER" = qt5-base ]; then kvantumver="kvantum-qt5" qtctver="qt5ct" qtremoval="qt6 Qt6"; else kvantumver="kvantum" qtctver="qt6ct"; fi
+DEPENDENCES="$kvantumver $qtctver" #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 BASICSTUFF="binutils debugedit gzip"
 COMPILERS="base-devel"
 
 # Set keywords to searchan include in names of directories and files in /usr/bin (BINSAVED), /usr/share (SHARESAVED) and /usr/lib (LIBSAVED)
-BINSAVED="SAVEBINSPLEASE"
+BINSAVED="qt5ct qt6ct"
 SHARESAVED="SAVESHAREPLEASE"
 LIBSAVED="SAVELIBSPLEASE"
 
@@ -16,9 +18,9 @@ LIBSAVED="SAVELIBSPLEASE"
 # Some keywords and paths are already set. Remove them if you consider them necessary for the AppImage to function properly.
 ETC_REMOVED="makepkg.conf pacman"
 BIN_REMOVED="gcc"
-LIB_REMOVED="gcc"
+LIB_REMOVED="gcc libgallium $qtremoval"
 PYTHON_REMOVED="__pycache__/"
-SHARE_REMOVED="gcc icons/AdwaitaLegacy icons/Adwaita/cursors/ terminfo"
+SHARE_REMOVED="gcc icons/AdwaitaLegacy icons/Adwaita/cursors/ terminfo Kvantum/"
 
 # Set mountpoints, they are ment to be set into the AppRun.
 # Default mounted files are /etc/resolv.conf, /etc/hosts, /etc/nsswitch.conf, /etc/passwd, /etc/group, /etc/machine-id, /etc/asound.conf and /etc/localtime
