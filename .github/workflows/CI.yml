@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: simplescreenrecorder-server
-            automatic_release_tag: simplescreenrecorder-server
+            title: simplescreenrecorder
+            automatic_release_tag: simplescreenrecorder
             prerelease: false
             draft: false
             files: |
