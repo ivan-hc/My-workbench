@@ -9,7 +9,7 @@ COMPILERS="base-devel"
 # Set keywords to searchan include in names of directories and files in /usr/bin (BINSAVED), /usr/share (SHARESAVED) and /usr/lib (LIBSAVED)
 BINSAVED="SAVEBINSPLEASE"
 SHARESAVED="SAVESHAREPLEASE"
-LIBSAVED="alsa jack pipewire pulse libogg.so libvorbisenc.so libFLAC.so libmpg123.so"
+LIBSAVED="alsa jack libogg.so libvorbis libFLAC.so libopus.so libmpg libmp3lame.so pipewire pulse libSDL"
 
 # Set the items you want to manually REMOVE. Complete the path in /etc/, /usr/bin/, /usr/lib/, /usr/lib/python*/ and /usr/share/ respectively.
 # The "rm" command will take into account the listed object/path and add an asterisk at the end, completing the path to be removed.
@@ -89,7 +89,7 @@ cd ..
 rm -f AppDir/AppRun
 
 # Set to "1" if you want to add Nvidia drivers manager in the AppRun
-export NVIDIA_ON=0
+export NVIDIA_ON=1
 
 [ -f ./archimage-builder.sh ] && source ./archimage-builder.sh apprun "$@"
 
