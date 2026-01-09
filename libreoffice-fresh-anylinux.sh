@@ -3,6 +3,8 @@
 APP=libreoffice-fresh
 BIN="libreoffice" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
 
+export extra_bins="oosplash"
+
 # Language packs
 add_italian="libreoffice-it"
 add_european="$add_italian libreoffice-en-gb libreoffice-fr libreoffice-de libreoffice-pt libreoffice-es"
