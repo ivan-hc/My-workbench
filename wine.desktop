@@ -30,5 +30,6 @@ Name[pl]=Wine – uruchamianie programów Windows
 Exec=wine start /unix %f
 MimeType=application/x-ms-dos-executable;application/x-msi;application/x-ms-shortcut;application/x-bat;application/x-mswinurl
 Icon=wine
+Categories=Utility;
 NoDisplay=true
 StartupNotify=true
