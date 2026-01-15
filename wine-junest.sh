@@ -3,6 +3,7 @@
 APP=wine
 BIN="$APP" #CHANGE THIS IF THE NAME OF THE BINARY IS DIFFERENT FROM "$APP" (for example, the binary of "obs-studio" is "obs")
 wine_dependences=$(curl -Ls "https://gitlab.archlinux.org/archlinux/packaging/packages/wine/-/raw/main/.SRCINFO" | grep "depends =\|optdepends =" | grep -v "makedepends =" | awk '{print $3}' | sort -u | xargs)
+[ -z "$wine_dependences" ] && exit 1
 DEPENDENCES=$(echo "$wine_dependences libxcb vulkan-icd-loader" | tr ' ' '\n' | sort -u | xargs) #SYNTAX: "APP1 APP2 APP3 APP4...", LEAVE BLANK IF NO OTHER DEPENDENCIES ARE NEEDED
 #BASICSTUFF="binutils debugedit gzip"
 #COMPILERS="base-devel"
