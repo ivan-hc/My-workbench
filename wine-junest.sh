@@ -30,7 +30,9 @@ mountpoint_dirs=""
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
-	echo " - None"
+	if ! grep -q "^Categories=" AppDir/*.desktop; then
+		echo "Categories=Utility;" >> AppDir/*.desktop
+	fi
 	# Add here your code
 }
 
