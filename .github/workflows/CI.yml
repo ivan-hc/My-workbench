@@ -20,8 +20,8 @@ jobs:
         sudo apt update && sudo apt install desktop-file-utils
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        chmod a+x ./wine-junest.sh
-        ./wine-junest.sh
+        chmod a+x ./bottles-junest.sh
+        ./bottles-junest.sh
         mkdir dist
         mv *AppImage* dist/
     - name: Upload artifact
@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: wine
-            automatic_release_tag: wine
+            title: bottles
+            automatic_release_tag: bottles
             prerelease: false
             draft: false
             files: |
