@@ -20,8 +20,8 @@ jobs:
         sudo apt update && sudo apt install desktop-file-utils
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        chmod a+x ./bottles-junest.sh
-        ./bottles-junest.sh
+        chmod a+x ./parsec-bin-anylinux.sh
+        ./parsec-bin-anylinux.sh
         mkdir dist
         mv *AppImage* dist/
     - name: Upload artifact
@@ -42,8 +42,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: bottles
-            automatic_release_tag: bottles
+            title: parsec
+            automatic_release_tag: parsec
             prerelease: false
             draft: false
             files: |
