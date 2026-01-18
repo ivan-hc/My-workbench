@@ -23,7 +23,7 @@ SHARE_REMOVED="gcc"
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
-	cp -r ../parsecd.png archlinux/AppDir/ || exit 1
+	cp -r ../parsecd.png AppDir/ || exit 1
 	# Add here your code
 }
 
