@@ -20,10 +20,16 @@ jobs:
         sudo apt update && sudo apt install desktop-file-utils
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
         sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        chmod a+x ./parsec-bin-anylinux.sh
-        ./parsec-bin-anylinux.sh
+        
+        APP=SAMPLE
+        cp -r tests/"$APP"*.sh ./
+        chmod a+x ./*.sh
+        ./*.sh
         mkdir dist
         mv *AppImage* dist/
+
+        echo SNAPSHOT_TAG="${APP}" >> "${GITHUB_ENV}"
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4.4.0
       with:
@@ -42,8 +48,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: parsec
-            automatic_release_tag: parsec
+            title: "${{ env.SNAPSHOT_TAG}}"
+            automatic_release_tag: "${{ env.SNAPSHOT_TAG}}"
             prerelease: false
             draft: false
             files: |
