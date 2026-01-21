@@ -27,6 +27,7 @@ jobs:
         ./*.sh
         mkdir dist
         mv *AppImage* dist/
+        echo SNAPSHOT_TAG="${APP}" >> "${GITHUB_ENV}"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4.4.0
@@ -46,8 +47,8 @@ jobs:
         - name: release
           uses: marvinpinto/action-automatic-releases@latest
           with:
-            title: github-store
-            automatic_release_tag: github-store
+            title: "${{ env.SNAPSHOT_TAG}}"
+            automatic_release_tag: "${{ env.SNAPSHOT_TAG}}"
             prerelease: false
             draft: false
             files: |
