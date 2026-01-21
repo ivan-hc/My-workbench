@@ -23,8 +23,12 @@ SHARE_REMOVED="gcc"
 # Post-installation processes (add whatever you want)
 _post_installation_processes() {
 	printf "\n◆ User's processes: \n\n"
+
+	echo " - Downloading the icon"
 	wget -q https://raw.githubusercontent.com/rainxchzed/Github-Store/main/composeApp/src/commonMain/composeResources/drawable/app-icon.png -O AppDir/GitHub-Store.png || exit 1
-	# Add here your code
+
+	echo " - Add patch to the script in \$PATH"
+	sed -i 's#/usr#\$APPDIR#g' AppDir/bin/github-store
 }
 
 ##########################################################################################################################################################
