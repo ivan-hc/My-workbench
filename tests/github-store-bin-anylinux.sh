@@ -28,7 +28,7 @@ _post_installation_processes() {
 	wget -q https://raw.githubusercontent.com/rainxchzed/Github-Store/main/composeApp/src/commonMain/composeResources/drawable/app-icon.png -O AppDir/GitHub-Store.png || exit 1
 
 	echo " - Add patch to the script in \$PATH"
-	sed -i 's#/usr#\$APPDIR#g' AppDir/bin/github-store
+	sed -i 's#/usr/lib#\$APPDIR/lib#g' AppDir/bin/github-store
 }
 
 ##########################################################################################################################################################
