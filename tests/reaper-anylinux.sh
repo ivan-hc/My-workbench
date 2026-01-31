@@ -77,8 +77,7 @@ for alu in $anylinux_utils; do
 	fi
 done
 
-rm -f ./.junest/usr/bin/reaper
-cp -r ./.junest/usr/lib/REAPER/reaper ./.junest/usr/bin/reaper
+export MAIN_BIN="/usr/lib/REAPER/reaper"
 
 ##########################################################################################################################################################
 #	APPDIR
