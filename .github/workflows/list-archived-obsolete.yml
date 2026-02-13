@@ -1,4 +1,4 @@
-name: "Sync Apps List"
+name: "Check archived and obsolete repositories"
 
 on:
   workflow_dispatch:
