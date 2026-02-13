@@ -5,7 +5,7 @@ if [ ! -d ./AM ]; then
 	git clone https://github.com/ivan-hc/AM.git
 fi
 
-FIVE_YEARS_AGO=$(date -u -d "5 years ago" +"%Y")
+FIVE_YEARS_AGO=$(date -u -d "1 years ago" +"%Y")
 
 _archived_list() {
 	user_repo=$(grep "^SITE=" "$arg" | head -1 | awk -F'"' '/^SITE=/{print $2}')
