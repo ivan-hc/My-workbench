@@ -62,13 +62,6 @@ jobs:
             export VERSION="$(<version)"
             echo "APP_VERSION=${VERSION}" >> "${GITHUB_ENV}"
     
-        #Version Release
-        - name: Del Previous Release
-          run: |
-            gh release delete "${APP_VERSION}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag  -y
-          env:
-            GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          continue-on-error: true
         - name: Continuous Releaser
           uses: softprops/action-gh-release@v2
           with:
