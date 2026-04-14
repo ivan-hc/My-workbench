@@ -45,7 +45,7 @@ jobs:
                 zstd \
                 linux-headers
 
-              BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
+              BUSYBOX_VERSION=1.36.1
 
               wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
@@ -53,10 +53,6 @@ jobs:
 
               # ---- base config ----
               make defconfig
-
-              # ---- FIX: disable broken CBQ support ----
-              sed -i 's/CONFIG_FEATURE_TC_CBQ=y/CONFIG_FEATURE_TC_CBQ=n/' .config || true
-              sed -i 's/CONFIG_TC=y/CONFIG_TC=n/' .config || true
 
               # ---- static binary ----
               sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
