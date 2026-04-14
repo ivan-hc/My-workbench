@@ -1,4 +1,4 @@
-name: Build BusyBox (full static multi-arch)
+name: Build BusyBox (static multi-arch Alpine)
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         include:
@@ -43,43 +44,53 @@ jobs:
                 linux-headers
 
               BUSYBOX_VERSION=1.36.1
+
               wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
               cd busybox-\${BUSYBOX_VERSION}
 
+              # ---- Base config ----
               make defconfig
 
-              # ---- CORE: static binary ----
+              # ---- STATIC build ----
               sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
-              # ---- ENABLE (almost) ALL APPLETS ----
-              # Turn on everything that is currently off
-              sed -i 's/# CONFIG_\(.*\) is not set/CONFIG_\1=y/' .config
+              # ---- Avoid interactive install question ----
+              sed -i 's/# CONFIG_INSTALL_APPLET_SYMLINKS is not set/CONFIG_INSTALL_APPLET_SYMLINKS=y/' .config
 
-              # ---- KEEP IMPORTANT FEATURES ----
-              # Some features depend on these explicitly
-              sed -i 's/.*CONFIG_FEATURE_PREFER_APPLETS.*/CONFIG_FEATURE_PREFER_APPLETS=y/' .config || true
-              sed -i 's/.*CONFIG_FEATURE_SH_STANDALONE.*/CONFIG_FEATURE_SH_STANDALONE=y/' .config || true
-              sed -i 's/.*CONFIG_FEATURE_SH_NOFORK.*/CONFIG_FEATURE_SH_NOFORK=y/' .config || true
+              # ---- Required for .deb extraction ----
+              sed -i 's/# CONFIG_AR is not set/CONFIG_AR=y/' .config
+              sed -i 's/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/CONFIG_FEATURE_AR_LONG_FILENAMES=y/' .config
 
-              # ---- Ensure compression + archive support ----
-              sed -i 's/.*CONFIG_AR.*/CONFIG_AR=y/' .config || true
-              sed -i 's/.*CONFIG_TAR.*/CONFIG_TAR=y/' .config || true
-              sed -i 's/.*CONFIG_GZIP.*/CONFIG_GZIP=y/' .config || true
-              sed -i 's/.*CONFIG_BZIP2.*/CONFIG_BZIP2=y/' .config || true
-              sed -i 's/.*CONFIG_XZ.*/CONFIG_XZ=y/' .config || true
-              sed -i 's/.*CONFIG_ZSTD.*/CONFIG_ZSTD=y/' .config || true
+              sed -i 's/# CONFIG_TAR is not set/CONFIG_TAR=y/' .config
+              sed -i 's/# CONFIG_FEATURE_TAR_AUTODETECT is not set/CONFIG_FEATURE_TAR_AUTODETECT=y/' .config
 
-              # ---- Fix config dependencies ----
-              make oldconfig
+              sed -i 's/# CONFIG_GZIP is not set/CONFIG_GZIP=y/' .config
+              sed -i 's/# CONFIG_BZIP2 is not set/CONFIG_BZIP2=y/' .config
+              sed -i 's/# CONFIG_XZ is not set/CONFIG_XZ=y/' .config
+              sed -i 's/# CONFIG_ZSTD is not set/CONFIG_ZSTD=y/' .config
+
+              # ---- Useful extras (safe, non-experimental) ----
+              sed -i 's/# CONFIG_FEATURE_PREFER_APPLETS is not set/CONFIG_FEATURE_PREFER_APPLETS=y/' .config
+              sed -i 's/# CONFIG_FEATURE_SH_STANDALONE is not set/CONFIG_FEATURE_SH_STANDALONE=y/' .config
+              sed -i 's/# CONFIG_FEATURE_SH_NOFORK is not set/CONFIG_FEATURE_SH_NOFORK=y/' .config
+
+              # ---- Non-interactive config resolution ----
+              make olddefconfig
 
               # ---- Build ----
               make -j\$(nproc)
 
+              # ---- Strip (smaller binary) ----
               strip busybox || true
 
               cp busybox /work/busybox-${{ matrix.arch }}
             "
+
+      - name: Verify applets
+        run: |
+          chmod +x busybox-${{ matrix.arch }} || true
+          ./busybox-${{ matrix.arch }} --list | grep -E "ar|tar|xz|gzip" || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
