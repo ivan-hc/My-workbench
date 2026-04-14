@@ -1,4 +1,4 @@
-name: Build BusyBox (Alpine native multi-arch)
+name: Build BusyBox (Alpine multi-arch)
 
 on:
   push:
@@ -13,44 +13,54 @@ jobs:
         include:
           - arch: x86_64
             image: alpine:3.20
+            platform: linux/amd64
+
           - arch: i686
             image: i386/alpine:3.20
+            platform: linux/386
+
           - arch: aarch64
-            image: arm64v8/alpine:3.20
+            image: alpine:3.20
+            platform: linux/arm64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Enable QEMU (for ARM)
+      - name: Enable QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Build BusyBox
         run: |
-          docker run --rm -v $PWD:/work -w /work ${{ matrix.image }} sh -c "
-            set -eux
+          docker run --rm \
+            --platform=${{ matrix.platform }} \
+            -v $PWD:/work \
+            -w /work \
+            ${{ matrix.image }} sh -c "
+              set -eux
 
-            apk add --no-cache \
-              build-base \
-              wget \
-              bzip2 \
-              linux-headers
+              apk add --no-cache \
+                build-base \
+                wget \
+                bzip2 \
+                linux-headers
 
-            BUSYBOX_VERSION=1.36.1
-            wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
-            tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
-            cd busybox-\${BUSYBOX_VERSION}
+              BUSYBOX_VERSION=1.36.1
+              wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
+              tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
+              cd busybox-\${BUSYBOX_VERSION}
 
-            make defconfig
+              make defconfig
 
-            # Enable static build
-            sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
+              # Enable static build
+              sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
-            # Build
-            make -j\$(nproc)
+              make -j\$(nproc)
 
-            cp busybox /work/busybox-${{ matrix.arch }}
-          "
+              strip busybox || true
+
+              cp busybox /work/busybox-${{ matrix.arch }}
+            "
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
