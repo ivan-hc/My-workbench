@@ -1,7 +1,7 @@
-name: Build BusyBox (static multi-arch)
+name: Build BusyBox (static via Alpine)
 
 on:
-  push:
+  #push:
   pull_request:
   workflow_dispatch:
 
@@ -16,61 +16,55 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            wget \
-            bzip2 \
-            musl-tools \
-            gcc-multilib \
-            crossbuild-essential-arm64
-
-      - name: Download BusyBox
-        run: |
-          BUSYBOX_VERSION=1.36.1
-          wget https://busybox.net/downloads/busybox-${BUSYBOX_VERSION}.tar.bz2
-          tar xf busybox-${BUSYBOX_VERSION}.tar.bz2
-          mv busybox-${BUSYBOX_VERSION} busybox
-
-      - name: Configure toolchain
+      - name: Build in Alpine container
         run: |
           case "${{ matrix.arch }}" in
             x86_64)
-              echo "CC=musl-gcc" >> $GITHUB_ENV
-              echo "ARCH=x86_64" >> $GITHUB_ENV
+              TARGET="x86_64"
+              CC="gcc"
               ;;
             i686)
-              echo "CC=gcc -m32" >> $GITHUB_ENV
-              echo "ARCH=i386" >> $GITHUB_ENV
+              TARGET="i686"
+              CC="gcc -m32"
               ;;
             aarch64)
-              echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-              echo "ARCH=arm64" >> $GITHUB_ENV
+              TARGET="aarch64"
+              CC="aarch64-linux-musl-gcc"
               ;;
           esac
 
-      - name: Build BusyBox (static)
-        run: |
-          cd busybox
-          make defconfig
+          docker run --rm -v $PWD:/work -w /work alpine:3.20 sh -c "
+            set -eux
 
-          # Force static build
-          sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
+            apk add --no-cache \
+              build-base \
+              wget \
+              bzip2 \
+              musl-dev \
+              linux-headers \
+              gcc \
+              make \
+              binutils \
+              gcc-aarch64-linux-musl
 
-          # Optional: smaller binary
-          sed -i 's/.*CONFIG_FEATURE.*//g' .config || true
+            BUSYBOX_VERSION=1.36.1
+            wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
+            tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
+            cd busybox-\${BUSYBOX_VERSION}
 
-          make -j$(nproc) CC="${CC}"
+            make defconfig
 
-      - name: Rename binary
-        run: |
-          mkdir -p out
-          cp busybox/busybox out/busybox-${{ matrix.arch }}
+            # Enable static build
+            sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
+
+            # Build
+            make -j\$(nproc) CC=\"${CC}\"
+
+            cp busybox /work/busybox-${TARGET}
+          "
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: busybox-${{ matrix.arch }}
-          path: out/busybox-${{ matrix.arch }}
+          path: busybox-${{ matrix.arch }}
