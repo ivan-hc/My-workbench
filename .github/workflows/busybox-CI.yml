@@ -45,7 +45,7 @@ jobs:
                 zstd \
                 linux-headers
 
-              BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
+              BUSYBOX_VERSION=1.36.1
 
               wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
