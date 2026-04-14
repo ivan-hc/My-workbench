@@ -18,8 +18,8 @@ jobs:
           - arch: i686
             platform: linux/386
 
-          - arch: aarch64
-            platform: linux/arm64
+          #- arch: aarch64
+          #  platform: linux/arm64
 
     steps:
       - name: Checkout
@@ -32,8 +32,8 @@ jobs:
         run: |
           docker run --rm \
             --platform=${{ matrix.platform }} \
-            -v $PWD:/work \
-            -w /work \
+            -v $PWD:/dist \
+            -w /dist \
             alpine:3.20 sh -c "
               set -eux
 
@@ -84,15 +84,37 @@ jobs:
 
               strip busybox || true
 
-              cp busybox /work/busybox-${{ matrix.arch }}
+              cp busybox /dist/busybox-${{ matrix.arch }}-static
             "
 
       - name: Verify
         run: |
-          ./busybox-${{ matrix.arch }} --list | grep ar || true
+          ./busybox-${{ matrix.arch }}-static --list | grep ar || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
-          name: busybox-${{ matrix.arch }}
-          path: busybox-${{ matrix.arch }}
+          name: busybox-${{ matrix.arch }}-static
+          path: 'dist'
+
+  release:
+      needs: [build]
+      permissions: write-all
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/download-artifact@v4.1.8
+          with:
+            name: busybox-static
+
+        # Continuous release
+        - name: release
+          uses: marvinpinto/action-automatic-releases@latest
+          with:
+            title: Continuous build
+            automatic_release_tag: continuous
+            prerelease: false
+            draft: false
+            files: |
+              busybox-*-static
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
