@@ -1,7 +1,7 @@
-name: Build BusyBox (static via Alpine)
+name: Build BusyBox (Alpine native multi-arch)
 
 on:
-  #push:
+  push:
   pull_request:
   workflow_dispatch:
 
@@ -10,42 +10,31 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, i686, aarch64]
+        include:
+          - arch: x86_64
+            image: alpine:3.20
+          - arch: i686
+            image: i386/alpine:3.20
+          - arch: aarch64
+            image: arm64v8/alpine:3.20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build in Alpine container
-        run: |
-          case "${{ matrix.arch }}" in
-            x86_64)
-              TARGET="x86_64"
-              CC="gcc"
-              ;;
-            i686)
-              TARGET="i686"
-              CC="gcc -m32"
-              ;;
-            aarch64)
-              TARGET="aarch64"
-              CC="aarch64-linux-musl-gcc"
-              ;;
-          esac
+      - name: Enable QEMU (for ARM)
+        uses: docker/setup-qemu-action@v3
 
-          docker run --rm -v $PWD:/work -w /work alpine:3.20 sh -c "
+      - name: Build BusyBox
+        run: |
+          docker run --rm -v $PWD:/work -w /work ${{ matrix.image }} sh -c "
             set -eux
 
             apk add --no-cache \
               build-base \
               wget \
               bzip2 \
-              musl-dev \
-              linux-headers \
-              gcc \
-              make \
-              binutils \
-              gcc-aarch64-linux-musl
+              linux-headers
 
             BUSYBOX_VERSION=1.36.1
             wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
@@ -58,9 +47,9 @@ jobs:
             sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
             # Build
-            make -j\$(nproc) CC=\"${CC}\"
+            make -j\$(nproc)
 
-            cp busybox /work/busybox-${TARGET}
+            cp busybox /work/busybox-${{ matrix.arch }}
           "
 
       - name: Upload artifact
