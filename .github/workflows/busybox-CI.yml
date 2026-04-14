@@ -1,8 +1,8 @@
 name: Build BusyBox (static multi-arch Alpine)
 
 on:
-  push:
-  pull_request:
+  schedule:
+    - cron: "0 21 28 * *"
   workflow_dispatch:
 
 jobs:
@@ -23,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Enable QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Build BusyBox
         run: |
@@ -34,7 +34,7 @@ jobs:
             --platform=${{ matrix.platform }} \
             -v $PWD:/work \
             -w /work \
-            alpine:3.20 sh -c "
+            alpine:latest sh -c "
               set -eux
 
               apk add --no-cache \
@@ -45,7 +45,8 @@ jobs:
                 zstd \
                 linux-headers
 
-              BUSYBOX_VERSION=1.36.1
+              BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
+              if [ -z "$BUSYBOX_VERSION" ]; then exit 1; fi
 
               wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
@@ -92,7 +93,7 @@ jobs:
           ./busybox-${{ matrix.arch }} --list | grep ar || true
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.1.8
         with:
           name: busybox-${{ matrix.arch }}
           path: busybox-${{ matrix.arch }}
