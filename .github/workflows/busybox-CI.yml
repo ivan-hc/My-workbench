@@ -54,6 +54,9 @@ jobs:
               # ---- base config ----
               make defconfig
 
+              # ---- FIX ONLY: disable CBQ (breaks on modern headers) ----
+              sed -i 's/CONFIG_TC_CBQ=y/CONFIG_TC_CBQ=n/' .config || true
+
               # ---- static binary ----
               sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
