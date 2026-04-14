@@ -34,7 +34,7 @@ jobs:
             --platform=${{ matrix.platform }} \
             -v $PWD:/work \
             -w /work \
-            alpine:latest sh -c "
+            alpine:3.20 sh -c "
               set -eux
 
               apk add --no-cache \
