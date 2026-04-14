@@ -46,7 +46,6 @@ jobs:
                 linux-headers
 
               BUSYBOX_VERSION=$(curl -Ls https://gitlab.alpinelinux.org/alpine/aports/-/raw/master/main/busybox/APKBUILD | grep "^pkgver=" | grep -Eo "[0-9].*[0-9]$")
-              if [ -z "$BUSYBOX_VERSION" ]; then exit 1; fi
 
               wget https://busybox.net/downloads/busybox-\${BUSYBOX_VERSION}.tar.bz2
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
