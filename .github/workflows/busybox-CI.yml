@@ -94,7 +94,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
-          name: busybox-${{ matrix.arch }}-static
+          name: busybox-static
           path: 'dist'
 
   release:
