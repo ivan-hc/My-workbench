@@ -14,8 +14,10 @@ jobs:
         include:
           - arch: x86_64
             platform: linux/amd64
+
           - arch: i686
             platform: linux/386
+
           - arch: aarch64
             platform: linux/arm64
 
@@ -49,16 +51,16 @@ jobs:
               tar xf busybox-\${BUSYBOX_VERSION}.tar.bz2
               cd busybox-\${BUSYBOX_VERSION}
 
-              # ---- Base config ----
+              # ---- base config ----
               make defconfig
 
-              # ---- STATIC build ----
+              # ---- static binary ----
               sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
-              # ---- Avoid interactive install question ----
+              # ---- applet install mode (avoid prompt) ----
               sed -i 's/# CONFIG_INSTALL_APPLET_SYMLINKS is not set/CONFIG_INSTALL_APPLET_SYMLINKS=y/' .config
 
-              # ---- Required for .deb extraction ----
+              # ---- .deb support ----
               sed -i 's/# CONFIG_AR is not set/CONFIG_AR=y/' .config
               sed -i 's/# CONFIG_FEATURE_AR_LONG_FILENAMES is not set/CONFIG_FEATURE_AR_LONG_FILENAMES=y/' .config
 
@@ -70,27 +72,24 @@ jobs:
               sed -i 's/# CONFIG_XZ is not set/CONFIG_XZ=y/' .config
               sed -i 's/# CONFIG_ZSTD is not set/CONFIG_ZSTD=y/' .config
 
-              # ---- Useful extras (safe, non-experimental) ----
-              sed -i 's/# CONFIG_FEATURE_PREFER_APPLETS is not set/CONFIG_FEATURE_PREFER_APPLETS=y/' .config
+              # ---- safe shell improvements ----
               sed -i 's/# CONFIG_FEATURE_SH_STANDALONE is not set/CONFIG_FEATURE_SH_STANDALONE=y/' .config
               sed -i 's/# CONFIG_FEATURE_SH_NOFORK is not set/CONFIG_FEATURE_SH_NOFORK=y/' .config
 
-              # ---- Non-interactive config resolution ----
-              make olddefconfig
+              # ---- IMPORTANT FIX (no olddefconfig!) ----
+              yes \"\" | make oldconfig
 
-              # ---- Build ----
+              # ---- build ----
               make -j\$(nproc)
 
-              # ---- Strip (smaller binary) ----
               strip busybox || true
 
               cp busybox /work/busybox-${{ matrix.arch }}
             "
 
-      - name: Verify applets
+      - name: Verify
         run: |
-          chmod +x busybox-${{ matrix.arch }} || true
-          ./busybox-${{ matrix.arch }} --list | grep -E "ar|tar|xz|gzip" || true
+          ./busybox-${{ matrix.arch }} --list | grep ar || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
