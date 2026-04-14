@@ -1,4 +1,4 @@
-name: Build BusyBox (Alpine multi-arch)
+name: Build BusyBox (full static multi-arch)
 
 on:
   push:
@@ -12,15 +12,10 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            image: alpine:3.20
             platform: linux/amd64
-
           - arch: i686
-            image: i386/alpine:3.20
             platform: linux/386
-
           - arch: aarch64
-            image: alpine:3.20
             platform: linux/arm64
 
     steps:
@@ -36,13 +31,15 @@ jobs:
             --platform=${{ matrix.platform }} \
             -v $PWD:/work \
             -w /work \
-            ${{ matrix.image }} sh -c "
+            alpine:3.20 sh -c "
               set -eux
 
               apk add --no-cache \
                 build-base \
                 wget \
                 bzip2 \
+                xz \
+                zstd \
                 linux-headers
 
               BUSYBOX_VERSION=1.36.1
@@ -52,9 +49,31 @@ jobs:
 
               make defconfig
 
-              # Enable static build
+              # ---- CORE: static binary ----
               sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
 
+              # ---- ENABLE (almost) ALL APPLETS ----
+              # Turn on everything that is currently off
+              sed -i 's/# CONFIG_\(.*\) is not set/CONFIG_\1=y/' .config
+
+              # ---- KEEP IMPORTANT FEATURES ----
+              # Some features depend on these explicitly
+              sed -i 's/.*CONFIG_FEATURE_PREFER_APPLETS.*/CONFIG_FEATURE_PREFER_APPLETS=y/' .config || true
+              sed -i 's/.*CONFIG_FEATURE_SH_STANDALONE.*/CONFIG_FEATURE_SH_STANDALONE=y/' .config || true
+              sed -i 's/.*CONFIG_FEATURE_SH_NOFORK.*/CONFIG_FEATURE_SH_NOFORK=y/' .config || true
+
+              # ---- Ensure compression + archive support ----
+              sed -i 's/.*CONFIG_AR.*/CONFIG_AR=y/' .config || true
+              sed -i 's/.*CONFIG_TAR.*/CONFIG_TAR=y/' .config || true
+              sed -i 's/.*CONFIG_GZIP.*/CONFIG_GZIP=y/' .config || true
+              sed -i 's/.*CONFIG_BZIP2.*/CONFIG_BZIP2=y/' .config || true
+              sed -i 's/.*CONFIG_XZ.*/CONFIG_XZ=y/' .config || true
+              sed -i 's/.*CONFIG_ZSTD.*/CONFIG_ZSTD=y/' .config || true
+
+              # ---- Fix config dependencies ----
+              make oldconfig
+
+              # ---- Build ----
               make -j\$(nproc)
 
               strip busybox || true
