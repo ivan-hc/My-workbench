@@ -1,0 +1,146 @@
+name: Build static curl & wget (Alpine)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch: [x86_64, x86, aarch64]
+
+    container:
+      image: alpine:3.20
+
+    env:
+      CURL_VERSION: 8.19.0
+      WGET_VERSION: 1.25.0
+
+    steps:
+      - name: Install base dependencies
+        run: |
+          apk add --no-cache \
+            build-base \
+            wget \
+            curl \
+            tar \
+            xz \
+            perl \
+            linux-headers \
+            pkgconf
+
+      - name: Install cross toolchain
+        run: |
+          case "${{ matrix.arch }}" in
+            x86_64)
+              export TARGET=x86_64-linux-musl
+              apk add gcc musl-dev
+              ;;
+            x86)
+              export TARGET=i686-linux-musl
+              apk add gcc-i686-linux-musl musl-dev
+              ;;
+            aarch64)
+              export TARGET=aarch64-linux-musl
+              apk add gcc-aarch64-linux-musl musl-dev
+              ;;
+          esac
+
+          echo "TARGET=$TARGET" >> $GITHUB_ENV
+
+      - name: Build zlib (static)
+        run: |
+          wget https://zlib.net/zlib-1.3.2.tar.gz
+          tar xf zlib-1.3.2.tar.gz
+          cd zlib-1.3.2
+
+          CC=${TARGET}-gcc ./configure --static --prefix=$PWD/build
+          make -j$(nproc)
+          make install
+
+          echo "ZLIB_ROOT=$PWD/build" >> $GITHUB_ENV
+
+      - name: Build OpenSSL (static)
+        run: |
+          wget https://www.openssl.org/source/openssl-4.0.0.tar.gz
+          tar xf openssl-4.0.0.tar.gz
+          cd openssl-4.0.0
+
+          case "${{ matrix.arch }}" in
+            x86_64) OPENSSL_TARGET=linux-x86_64 ;;
+            x86) OPENSSL_TARGET=linux-elf ;;
+            aarch64) OPENSSL_TARGET=linux-aarch64 ;;
+          esac
+
+          ./Configure $OPENSSL_TARGET no-shared no-tests \
+            --prefix=$PWD/build \
+            --cross-compile-prefix=${TARGET}-
+
+          make -j$(nproc)
+          make install_sw
+
+          echo "OPENSSL_ROOT=$PWD/build" >> $GITHUB_ENV
+
+      - name: Build curl (static)
+        run: |
+          wget https://curl.se/download/curl-${CURL_VERSION}.tar.gz
+          tar xf curl-${CURL_VERSION}.tar.gz
+          cd curl-${CURL_VERSION}
+
+          PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig" \
+          CC=${TARGET}-gcc \
+          ./configure \
+            --host=${TARGET} \
+            --with-openssl=$OPENSSL_ROOT \
+            --with-zlib=$ZLIB_ROOT \
+            --disable-shared \
+            --enable-static \
+            LDFLAGS="-static" \
+            CFLAGS="-Os"
+
+          make -j$(nproc)
+
+          mkdir -p /out/${{ matrix.arch }}
+          cp src/curl /out/${{ matrix.arch }}/
+
+      - name: Build wget (static)
+        run: |
+          wget https://ftp.gnu.org/gnu/wget/wget-${WGET_VERSION}.tar.gz
+          tar xf wget-${WGET_VERSION}.tar.gz
+          cd wget-${WGET_VERSION}
+
+          PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig" \
+          CC=${TARGET}-gcc \
+          ./configure \
+            --host=${TARGET} \
+            --with-ssl=openssl \
+            --with-libssl-prefix=$OPENSSL_ROOT \
+            --with-zlib=$ZLIB_ROOT \
+            --disable-shared \
+            --enable-static \
+            LDFLAGS="-static" \
+            CFLAGS="-Os"
+
+          make -j$(nproc)
+
+          mkdir -p /out/${{ matrix.arch }}
+          cp src/wget /out/${{ matrix.arch }}/
+
+      - name: Strip binaries
+        run: |
+          ${TARGET}-strip /out/${{ matrix.arch }}/* || true
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/out
+          cp -r /out/${{ matrix.arch }} $GITHUB_WORKSPACE/out/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.arch }}
+          path: out/${{ matrix.arch }}
