@@ -1,4 +1,4 @@
-name: Build static curl & wget (robust)
+name: Build static curl & wget (hardened)
 
 on:
   push:
@@ -91,8 +91,6 @@ jobs:
           tar xf curl-${CURL_VERSION}.tar.gz
           cd curl-${CURL_VERSION}
 
-          export PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig:$ZLIB_ROOT/lib/pkgconfig"
-
           CC=${CC} \
           ./configure \
             --host=${TARGET} \
@@ -109,7 +107,7 @@ jobs:
             --disable-telnet \
             --disable-tftp \
             CFLAGS="-Os -g" \
-            LDFLAGS="-static" \
+            LDFLAGS="-static -Wl,--as-needed" \
             LIBS="-ldl -lpthread"
 
           make V=1 -j$(nproc)
@@ -117,13 +115,18 @@ jobs:
           mkdir -p out/${{ matrix.arch }}
           cp src/curl out/${{ matrix.arch }}/
 
-      - name: Build wget (minimal + stable)
+      - name: Build wget (FINAL hardened fix)
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
           cd wget-${WGET_VERSION}
 
           export PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig:$ZLIB_ROOT/lib/pkgconfig"
+
+          # FORCE deterministic build environment
+          export CFLAGS="-Os -g"
+          export LDFLAGS="-static -Wl,--as-needed"
+          export LIBS="-lssl -lcrypto -lz -ldl -lpthread"
 
           CC=${CC} \
           ./configure \
@@ -136,13 +139,17 @@ jobs:
             --without-libpsl \
             --disable-pcre \
             --disable-nls \
-            CFLAGS="-Os -g" \
-            LDFLAGS="-static" \
-            LIBS="-ldl -lpthread"
+            --without-iri
 
-          make V=1 -j1   # IMPORTANT: single-threaded for stability
+          # IMPORTANT: capture real failure
+          make clean || true
+          make V=1 SHELL='/bin/bash -x' -j1 2>&1 | tee wget-build.log || {
+            echo "=== WGET BUILD FAILED ==="
+            tail -200 wget-build.log
+            exit 1
+          }
 
-          test -f src/wget || (echo "wget build failed" && exit 1)
+          test -f src/wget
 
           mkdir -p out/${{ matrix.arch }}
           cp src/wget out/${{ matrix.arch }}/
@@ -156,3 +163,10 @@ jobs:
         with:
           name: binaries-${{ matrix.arch }}
           path: out/${{ matrix.arch }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.arch }}
+          path: wget-build.log
