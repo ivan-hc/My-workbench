@@ -1,4 +1,4 @@
-name: Build static curl & wget (debug-stable)
+name: Build static curl & wget (robust)
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
             gcc-aarch64-linux-gnu \
             gcc-i686-linux-gnu
 
-      - name: Set target toolchain
+      - name: Set toolchain
         run: |
           case "${{ matrix.arch }}" in
             x86_64)
@@ -102,16 +102,22 @@ jobs:
             --without-zstd \
             --disable-shared \
             --enable-static \
+            --disable-ldap \
+            --disable-ldaps \
+            --disable-rtsp \
+            --disable-dict \
+            --disable-telnet \
+            --disable-tftp \
+            CFLAGS="-Os -g" \
             LDFLAGS="-static" \
-            LIBS="-ldl -lpthread" \
-            CFLAGS="-Os -g"
+            LIBS="-ldl -lpthread"
 
-          make V=1 -j$(nproc) 2>&1 | tee curl-build.log
+          make V=1 -j$(nproc)
 
           mkdir -p out/${{ matrix.arch }}
           cp src/curl out/${{ matrix.arch }}/
 
-      - name: Build wget (static + debug)
+      - name: Build wget (minimal + stable)
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
@@ -127,14 +133,16 @@ jobs:
             --with-zlib=$ZLIB_ROOT \
             --disable-shared \
             --enable-static \
-            --disable-pcre \
             --without-libpsl \
+            --disable-pcre \
+            --disable-nls \
             CFLAGS="-Os -g" \
             LDFLAGS="-static" \
-            LIBS="-ldl -lpthread" \
-            2>&1 | tee wget-config.log
+            LIBS="-ldl -lpthread"
 
-          make V=1 -j$(nproc) 2>&1 | tee wget-build.log
+          make V=1 -j1   # IMPORTANT: single-threaded for stability
+
+          test -f src/wget || (echo "wget build failed" && exit 1)
 
           mkdir -p out/${{ matrix.arch }}
           cp src/wget out/${{ matrix.arch }}/
@@ -148,13 +156,3 @@ jobs:
         with:
           name: binaries-${{ matrix.arch }}
           path: out/${{ matrix.arch }}
-
-      - name: Upload build logs (IMPORTANT)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: build-logs-${{ matrix.arch }}
-          path: |
-            curl-build.log
-            wget-config.log
-            wget-build.log
