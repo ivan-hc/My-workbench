@@ -1,4 +1,4 @@
-name: Build static curl & wget (fixed i686 SSL)
+name: Build static curl & wget (OOM-safe i686)
 
 on:
   push:
@@ -47,18 +47,21 @@ jobs:
             x86_64)
               echo "TARGET=x86_64-linux-gnu" >> $GITHUB_ENV
               echo "CC=gcc" >> $GITHUB_ENV
+              echo "OPENSSL_JOBS=2" >> $GITHUB_ENV
               ;;
             x86)
               echo "TARGET=i686-linux-gnu" >> $GITHUB_ENV
               echo "CC=i686-linux-gnu-gcc" >> $GITHUB_ENV
+              echo "OPENSSL_JOBS=1" >> $GITHUB_ENV   # IMPORTANT FIX
               ;;
             aarch64)
               echo "TARGET=aarch64-linux-gnu" >> $GITHUB_ENV
               echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+              echo "OPENSSL_JOBS=2" >> $GITHUB_ENV
               ;;
           esac
 
-      - name: Build zlib (static)
+      - name: Build zlib (safe)
         run: |
           wget https://zlib.net/zlib-1.3.2.tar.gz
           tar xf zlib-1.3.2.tar.gz
@@ -70,7 +73,7 @@ jobs:
 
           echo "ZLIB_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      - name: Build OpenSSL (static)
+      - name: Build OpenSSL (OOM-safe)
         run: |
           wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
           tar xf openssl-${OPENSSL_VERSION}.tar.gz
@@ -86,15 +89,38 @@ jobs:
           ./Configure $OPENSSL_TARGET no-shared no-tests \
             --prefix=$PWD/build
 
-          make -j$(nproc)
+          # 🔥 CRITICAL FIX: limit parallelism
+          make -j${OPENSSL_JOBS}
           make install_sw
 
           echo "OPENSSL_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      # =========================
-      # FIXED WGET SECTION
-      # =========================
-      - name: Build wget (FIXED SSL detection)
+      - name: Build curl (unchanged safe)
+        run: |
+          wget https://curl.se/download/curl-${CURL_VERSION}.tar.gz
+          tar xf curl-${CURL_VERSION}.tar.gz
+          cd curl-${CURL_VERSION}
+
+          export CPPFLAGS="-I$OPENSSL_ROOT/include -I$ZLIB_ROOT/include"
+          export LDFLAGS="-L$OPENSSL_ROOT/lib -L$ZLIB_ROOT/lib -static"
+          export LIBS="-lssl -lcrypto -lz -ldl -lpthread"
+
+          CC=${CC} \
+          ./configure \
+            --host=${TARGET} \
+            --with-openssl=$OPENSSL_ROOT \
+            --with-zlib=$ZLIB_ROOT \
+            --without-libpsl \
+            --without-zstd \
+            --disable-shared \
+            --enable-static
+
+          make -j$(nproc)
+
+          mkdir -p out/${{ matrix.arch }}
+          cp src/curl out/${{ matrix.arch }}/
+
+      - name: Build wget (safe)
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
