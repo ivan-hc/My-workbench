@@ -1,4 +1,4 @@
-name: Build static curl & wget (Alpine)
+name: Build static curl & wget (musl cross)
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
         arch: [x86_64, x86, aarch64]
 
     container:
-      image: alpine:3.20
+      image: messense/musl-cross:x86_64-aarch64-i686
 
     env:
       CURL_VERSION: 8.19.0
@@ -23,34 +23,26 @@ jobs:
     steps:
       - name: Install base dependencies
         run: |
-          apk add --no-cache \
-            build-base \
+          apt-get update
+          apt-get install -y \
             wget \
             curl \
             tar \
-            xz \
+            xz-utils \
             perl \
-            linux-headers \
-            pkgconf
+            make \
+            pkg-config
 
-      - name: Install cross toolchain
+      - name: Set target
         run: |
           case "${{ matrix.arch }}" in
-            x86_64)
-              export TARGET=x86_64-linux-musl
-              apk add gcc musl-dev
-              ;;
-            x86)
-              export TARGET=i686-linux-musl
-              apk add gcc-i686-linux-musl musl-dev
-              ;;
-            aarch64)
-              export TARGET=aarch64-linux-musl
-              apk add gcc-aarch64-linux-musl musl-dev
-              ;;
+            x86_64) TARGET=x86_64-linux-musl ;;
+            x86) TARGET=i686-linux-musl ;;
+            aarch64) TARGET=aarch64-linux-musl ;;
           esac
 
           echo "TARGET=$TARGET" >> $GITHUB_ENV
+          echo "CC=${TARGET}-gcc" >> $GITHUB_ENV
 
       - name: Build zlib (static)
         run: |
@@ -58,7 +50,7 @@ jobs:
           tar xf zlib-1.3.2.tar.gz
           cd zlib-1.3.2
 
-          CC=${TARGET}-gcc ./configure --static --prefix=$PWD/build
+          CC=${CC} ./configure --static --prefix=$PWD/build
           make -j$(nproc)
           make install
 
@@ -91,8 +83,9 @@ jobs:
           tar xf curl-${CURL_VERSION}.tar.gz
           cd curl-${CURL_VERSION}
 
-          PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig" \
-          CC=${TARGET}-gcc \
+          export PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig:$ZLIB_ROOT/lib/pkgconfig"
+
+          CC=${CC} \
           ./configure \
             --host=${TARGET} \
             --with-openssl=$OPENSSL_ROOT \
@@ -100,6 +93,7 @@ jobs:
             --disable-shared \
             --enable-static \
             LDFLAGS="-static" \
+            LIBS="-ldl -lpthread" \
             CFLAGS="-Os"
 
           make -j$(nproc)
@@ -113,8 +107,9 @@ jobs:
           tar xf wget-${WGET_VERSION}.tar.gz
           cd wget-${WGET_VERSION}
 
-          PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig" \
-          CC=${TARGET}-gcc \
+          export PKG_CONFIG_PATH="$OPENSSL_ROOT/lib/pkgconfig:$ZLIB_ROOT/lib/pkgconfig"
+
+          CC=${CC} \
           ./configure \
             --host=${TARGET} \
             --with-ssl=openssl \
@@ -123,6 +118,7 @@ jobs:
             --disable-shared \
             --enable-static \
             LDFLAGS="-static" \
+            LIBS="-ldl -lpthread" \
             CFLAGS="-Os"
 
           make -j$(nproc)
