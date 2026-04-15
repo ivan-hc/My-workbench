@@ -99,6 +99,7 @@ jobs:
             --with-openssl=$OPENSSL_ROOT \
             --with-zlib=$ZLIB_ROOT \
             --without-libpsl \
+            --without-zstd \
             --disable-shared \
             --enable-static \
             LDFLAGS="-static" \
@@ -112,7 +113,7 @@ jobs:
 
       - name: Build wget (static)
         run: |
-          wget https://ftp.gnu.org/gnu/wget/wget-${WGET_VERSION}.tar.gz
+          wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
           cd wget-${WGET_VERSION}
 
