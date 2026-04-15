@@ -1,4 +1,4 @@
-name: Build static curl & wget (clean toolchain)
+name: Build static curl & wget (fixed i686 SSL)
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       OPENSSL_VERSION: 3.3.0
 
     steps:
-      - name: Install clean toolchain (NO multilib)
+      - name: Install toolchain
         run: |
           apt-get update
           apt-get install -y \
@@ -35,11 +35,11 @@ jobs:
             pkg-config \
             gcc \
             g++ \
-            ca-certificates \
             gcc-i686-linux-gnu \
             gcc-aarch64-linux-gnu \
             binutils-i686-linux-gnu \
-            binutils-aarch64-linux-gnu
+            binutils-aarch64-linux-gnu \
+            ca-certificates
 
       - name: Set toolchain
         run: |
@@ -91,35 +91,18 @@ jobs:
 
           echo "OPENSSL_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      - name: Build curl (static)
-        run: |
-          wget https://curl.se/download/curl-${CURL_VERSION}.tar.gz
-          tar xf curl-${CURL_VERSION}.tar.gz
-          cd curl-${CURL_VERSION}
-
-          CC=${CC} \
-          ./configure \
-            --host=${TARGET} \
-            --with-openssl=$OPENSSL_ROOT \
-            --with-zlib=$ZLIB_ROOT \
-            --without-libpsl \
-            --without-zstd \
-            --disable-shared \
-            --enable-static \
-            CFLAGS="-Os" \
-            LDFLAGS="-static" \
-            LIBS="-ldl -lpthread"
-
-          make -j$(nproc)
-
-          mkdir -p out/${{ matrix.arch }}
-          cp src/curl out/${{ matrix.arch }}/
-
-      - name: Build wget (stable)
+      # =========================
+      # FIXED WGET SECTION
+      # =========================
+      - name: Build wget (FIXED SSL detection)
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
           cd wget-${WGET_VERSION}
+
+          export CPPFLAGS="-I$OPENSSL_ROOT/include -I$ZLIB_ROOT/include"
+          export LDFLAGS="-L$OPENSSL_ROOT/lib -L$ZLIB_ROOT/lib -static"
+          export LIBS="-lssl -lcrypto -lz -ldl -lpthread"
 
           CC=${CC} \
           ./configure \
@@ -139,10 +122,6 @@ jobs:
 
           mkdir -p out/${{ matrix.arch }}
           cp src/wget out/${{ matrix.arch }}/
-
-      - name: Strip binaries
-        run: |
-          strip out/${{ matrix.arch }}/* || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
