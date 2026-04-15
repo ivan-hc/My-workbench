@@ -76,7 +76,6 @@ jobs:
             aarch64) OPENSSL_TARGET=linux-aarch64 ;;
           esac
 
-          # NOTE: no cross-compile-prefix (more stable with GNU toolchains)
           CC=${CC} \
           ./Configure $OPENSSL_TARGET no-shared no-tests \
             --prefix=$PWD/build
@@ -99,6 +98,7 @@ jobs:
             --host=${TARGET} \
             --with-openssl=$OPENSSL_ROOT \
             --with-zlib=$ZLIB_ROOT \
+            --without-libpsl \
             --disable-shared \
             --enable-static \
             LDFLAGS="-static" \
