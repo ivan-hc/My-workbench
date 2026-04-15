@@ -11,10 +11,21 @@ jobs:
 
     strategy:
       matrix:
-        arch: [x86_64, x86, aarch64]
+        include:
+          - arch: x86_64
+            target: x86_64-linux-musl
+            container: messense/musl-cross:x86_64-linux-musl
+
+          - arch: x86
+            target: i686-linux-musl
+            container: messense/musl-cross:i686-linux-musl
+
+          - arch: aarch64
+            target: aarch64-linux-musl
+            container: messense/musl-cross:aarch64-linux-musl
 
     container:
-      image: messense/musl-cross:x86_64-aarch64-i686
+      image: ${{ matrix.container }}
 
     env:
       CURL_VERSION: 8.19.0
@@ -33,16 +44,10 @@ jobs:
             make \
             pkg-config
 
-      - name: Set target
+      - name: Set environment
         run: |
-          case "${{ matrix.arch }}" in
-            x86_64) TARGET=x86_64-linux-musl ;;
-            x86) TARGET=i686-linux-musl ;;
-            aarch64) TARGET=aarch64-linux-musl ;;
-          esac
-
-          echo "TARGET=$TARGET" >> $GITHUB_ENV
-          echo "CC=${TARGET}-gcc" >> $GITHUB_ENV
+          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+          echo "CC=${{ matrix.target }}-gcc" >> $GITHUB_ENV
 
       - name: Build zlib (static)
         run: |
