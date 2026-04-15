@@ -1,4 +1,4 @@
-name: Build static curl & wget (Debian bullseye stable)
+name: Build static curl & wget (clean toolchain)
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       OPENSSL_VERSION: 3.3.0
 
     steps:
-      - name: Install dependencies
+      - name: Install clean toolchain (NO multilib)
         run: |
           apt-get update
           apt-get install -y \
@@ -35,11 +35,11 @@ jobs:
             pkg-config \
             gcc \
             g++ \
-            gcc-multilib \
-            gcc-aarch64-linux-gnu \
+            ca-certificates \
             gcc-i686-linux-gnu \
-            libc6-dev-i386 \
-            ca-certificates
+            gcc-aarch64-linux-gnu \
+            binutils-i686-linux-gnu \
+            binutils-aarch64-linux-gnu
 
       - name: Set toolchain
         run: |
@@ -70,7 +70,7 @@ jobs:
 
           echo "ZLIB_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      - name: Build OpenSSL (stable)
+      - name: Build OpenSSL (static)
         run: |
           wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
           tar xf openssl-${OPENSSL_VERSION}.tar.gz
