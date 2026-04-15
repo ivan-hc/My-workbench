@@ -1,4 +1,4 @@
-name: Build static curl & wget
+name: Build static curl & wget (stable)
 
 on:
   push:
@@ -16,6 +16,7 @@ jobs:
     env:
       CURL_VERSION: 8.19.0
       WGET_VERSION: 1.25.0
+      OPENSSL_VERSION: 3.3.0
 
     steps:
       - name: Install dependencies
@@ -65,9 +66,9 @@ jobs:
 
       - name: Build OpenSSL (static)
         run: |
-          wget https://www.openssl.org/source/openssl-4.0.0.tar.gz
-          tar xf openssl-4.0.0.tar.gz
-          cd openssl-4.0.0
+          wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
+          tar xf openssl-${OPENSSL_VERSION}.tar.gz
+          cd openssl-${OPENSSL_VERSION}
 
           case "${{ matrix.arch }}" in
             x86_64) OPENSSL_TARGET=linux-x86_64 ;;
@@ -75,9 +76,10 @@ jobs:
             aarch64) OPENSSL_TARGET=linux-aarch64 ;;
           esac
 
+          # NOTE: no cross-compile-prefix (more stable with GNU toolchains)
+          CC=${CC} \
           ./Configure $OPENSSL_TARGET no-shared no-tests \
-            --prefix=$PWD/build \
-            --cross-compile-prefix=${TARGET}-
+            --prefix=$PWD/build
 
           make -j$(nproc)
           make install_sw
