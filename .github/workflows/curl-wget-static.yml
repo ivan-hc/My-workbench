@@ -1,4 +1,4 @@
-name: Build static curl & wget (stable)
+name: Build static curl & wget (debug-stable)
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
             gcc-aarch64-linux-gnu \
             gcc-i686-linux-gnu
 
-      - name: Set target
+      - name: Set target toolchain
         run: |
           case "${{ matrix.arch }}" in
             x86_64)
@@ -104,14 +104,14 @@ jobs:
             --enable-static \
             LDFLAGS="-static" \
             LIBS="-ldl -lpthread" \
-            CFLAGS="-Os"
+            CFLAGS="-Os -g"
 
-          make -j$(nproc)
+          make V=1 -j$(nproc) 2>&1 | tee curl-build.log
 
           mkdir -p out/${{ matrix.arch }}
           cp src/curl out/${{ matrix.arch }}/
 
-      - name: Build wget (static)
+      - name: Build wget (static + debug)
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
@@ -127,11 +127,14 @@ jobs:
             --with-zlib=$ZLIB_ROOT \
             --disable-shared \
             --enable-static \
+            --disable-pcre \
+            --without-libpsl \
+            CFLAGS="-Os -g" \
             LDFLAGS="-static" \
             LIBS="-ldl -lpthread" \
-            CFLAGS="-Os"
+            2>&1 | tee wget-config.log
 
-          make -j$(nproc)
+          make V=1 -j$(nproc) 2>&1 | tee wget-build.log
 
           mkdir -p out/${{ matrix.arch }}
           cp src/wget out/${{ matrix.arch }}/
@@ -145,3 +148,13 @@ jobs:
         with:
           name: binaries-${{ matrix.arch }}
           path: out/${{ matrix.arch }}
+
+      - name: Upload build logs (IMPORTANT)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs-${{ matrix.arch }}
+          path: |
+            curl-build.log
+            wget-config.log
+            wget-build.log
