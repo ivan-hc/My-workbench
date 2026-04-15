@@ -1,4 +1,4 @@
-name: Build static curl & wget (musl cross)
+name: Build static curl & wget
 
 on:
   push:
@@ -11,43 +11,45 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - arch: x86_64
-            target: x86_64-linux-musl
-            container: messense/musl-cross:x86_64-linux-musl
-
-          - arch: x86
-            target: i686-linux-musl
-            container: messense/musl-cross:i686-linux-musl
-
-          - arch: aarch64
-            target: aarch64-linux-musl
-            container: messense/musl-cross:aarch64-linux-musl
-
-    container:
-      image: ${{ matrix.container }}
+        arch: [x86_64, x86, aarch64]
 
     env:
       CURL_VERSION: 8.19.0
       WGET_VERSION: 1.25.0
 
     steps:
-      - name: Install base dependencies
+      - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
             wget \
             curl \
             tar \
             xz-utils \
             perl \
-            make \
-            pkg-config
+            pkg-config \
+            gcc \
+            g++ \
+            gcc-aarch64-linux-gnu \
+            gcc-i686-linux-gnu
 
-      - name: Set environment
+      - name: Set target
         run: |
-          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
-          echo "CC=${{ matrix.target }}-gcc" >> $GITHUB_ENV
+          case "${{ matrix.arch }}" in
+            x86_64)
+              echo "TARGET=x86_64-linux-gnu" >> $GITHUB_ENV
+              echo "CC=gcc" >> $GITHUB_ENV
+              ;;
+            x86)
+              echo "TARGET=i686-linux-gnu" >> $GITHUB_ENV
+              echo "CC=i686-linux-gnu-gcc" >> $GITHUB_ENV
+              ;;
+            aarch64)
+              echo "TARGET=aarch64-linux-gnu" >> $GITHUB_ENV
+              echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+              ;;
+          esac
 
       - name: Build zlib (static)
         run: |
@@ -103,8 +105,8 @@ jobs:
 
           make -j$(nproc)
 
-          mkdir -p /out/${{ matrix.arch }}
-          cp src/curl /out/${{ matrix.arch }}/
+          mkdir -p out/${{ matrix.arch }}
+          cp src/curl out/${{ matrix.arch }}/
 
       - name: Build wget (static)
         run: |
@@ -128,17 +130,12 @@ jobs:
 
           make -j$(nproc)
 
-          mkdir -p /out/${{ matrix.arch }}
-          cp src/wget /out/${{ matrix.arch }}/
+          mkdir -p out/${{ matrix.arch }}
+          cp src/wget out/${{ matrix.arch }}/
 
       - name: Strip binaries
         run: |
-          ${TARGET}-strip /out/${{ matrix.arch }}/* || true
-
-      - name: Prepare artifacts
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/out
-          cp -r /out/${{ matrix.arch }} $GITHUB_WORKSPACE/out/
+          strip out/${{ matrix.arch }}/* || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
