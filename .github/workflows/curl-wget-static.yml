@@ -1,4 +1,4 @@
-name: Build static curl & wget (OOM-safe i686)
+name: Build static curl & wget (clean env isolation)
 
 on:
   push:
@@ -22,11 +22,12 @@ jobs:
       OPENSSL_VERSION: 3.3.0
 
     steps:
-      - name: Install toolchain
+      - name: Install toolchains
         run: |
           apt-get update
           apt-get install -y \
             build-essential \
+            libc6-dev \
             wget \
             curl \
             tar \
@@ -41,25 +42,39 @@ jobs:
             binutils-aarch64-linux-gnu \
             ca-certificates
 
-      - name: Set toolchain
+      - name: Reset environment (CRITICAL FIX)
+        run: |
+          unset CC CFLAGS CPPFLAGS LDFLAGS LIBS
+          echo "CC=" >> $GITHUB_ENV
+          echo "CFLAGS=" >> $GITHUB_ENV
+          echo "CPPFLAGS=" >> $GITHUB_ENV
+          echo "LDFLAGS=" >> $GITHUB_ENV
+          echo "LIBS=" >> $GITHUB_ENV
+
+      - name: Set toolchain cleanly
         run: |
           case "${{ matrix.arch }}" in
             x86_64)
               echo "TARGET=x86_64-linux-gnu" >> $GITHUB_ENV
               echo "CC=gcc" >> $GITHUB_ENV
-              echo "OPENSSL_JOBS=2" >> $GITHUB_ENV
               ;;
             x86)
               echo "TARGET=i686-linux-gnu" >> $GITHUB_ENV
               echo "CC=i686-linux-gnu-gcc" >> $GITHUB_ENV
-              echo "OPENSSL_JOBS=1" >> $GITHUB_ENV   # IMPORTANT FIX
               ;;
             aarch64)
               echo "TARGET=aarch64-linux-gnu" >> $GITHUB_ENV
               echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-              echo "OPENSSL_JOBS=2" >> $GITHUB_ENV
               ;;
           esac
+
+      - name: Verify compiler (IMPORTANT DEBUG STEP)
+        run: |
+          echo "CC=$CC"
+          $CC --version
+          echo 'int main(){return 0;}' > test.c
+          $CC test.c -o test.out
+          ./test.out
 
       - name: Build zlib (safe)
         run: |
@@ -73,7 +88,7 @@ jobs:
 
           echo "ZLIB_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      - name: Build OpenSSL (OOM-safe)
+      - name: Build OpenSSL (safe)
         run: |
           wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
           tar xf openssl-${OPENSSL_VERSION}.tar.gz
@@ -89,13 +104,12 @@ jobs:
           ./Configure $OPENSSL_TARGET no-shared no-tests \
             --prefix=$PWD/build
 
-          # 🔥 CRITICAL FIX: limit parallelism
-          make -j${OPENSSL_JOBS}
+          make -j1
           make install_sw
 
           echo "OPENSSL_ROOT=$PWD/build" >> $GITHUB_ENV
 
-      - name: Build curl (unchanged safe)
+      - name: Build curl (safe)
         run: |
           wget https://curl.se/download/curl-${CURL_VERSION}.tar.gz
           tar xf curl-${CURL_VERSION}.tar.gz
@@ -120,7 +134,7 @@ jobs:
           mkdir -p out/${{ matrix.arch }}
           cp src/curl out/${{ matrix.arch }}/
 
-      - name: Build wget (safe)
+      - name: Build wget
         run: |
           wget https://ftp.halifax.rwth-aachen.de/gnu/wget/wget-${WGET_VERSION}.tar.gz
           tar xf wget-${WGET_VERSION}.tar.gz
