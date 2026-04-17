@@ -81,8 +81,8 @@ _use_sharun() {
 
 # --------------------- RUN ONE BETWEEN ONELF AND SHARUN
 
-#_use_onelf
-_use_quick_sharun
+_use_onelf
+#_use_quick_sharun
 #_use_sharun
 
 # --------------------- EXPORT TO APPIMAGES
