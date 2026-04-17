@@ -30,9 +30,9 @@ jobs:
         run: |
           IMAGE="debian:unstable"
           if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
+            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
           else
-            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
+            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
           fi
 
       # Upload artifacts for release
