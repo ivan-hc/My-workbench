@@ -19,14 +19,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Run your script inside the appropriate container with dependencies installed
+      # Run your script inside the appropriate container with dependencies
       - name: Run script in container
         run: |
-          IMAGE="ubuntu:22.04"
+          IMAGE="ubuntu:24.04"
           if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update; apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils; chmod +x ./utils2appimage.sh; ./utils2appimage.sh"
+            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
           else
-            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update; apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils; chmod +x ./utils2appimage.sh; ./utils2appimage.sh"
+            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "apt-get update && apt-get install -y python3 python3-pip make gcc wget curl xz-utils busybox p7zip-full file binutils && chmod +x ./utils2appimage.sh && ./utils2appimage.sh"
+          fi
 
       # Upload artifacts for release
       - name: Upload artifact
