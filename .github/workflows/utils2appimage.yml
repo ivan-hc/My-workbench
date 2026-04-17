@@ -11,7 +11,7 @@ jobs:
         arch: [x86_64, aarch64]
 
     steps:
-      # Checkout the repository
+      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -19,7 +19,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Run your script inside the appropriate container with dependencies
+      # Set up QEMU for ARM emulation
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      # Run your script inside the appropriate container
       - name: Run script in container
         run: |
           IMAGE="debian:12"
