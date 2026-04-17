@@ -12,8 +12,10 @@ _potable2appimage() {
 		if [ ! -f ./potable2appimage ]; then
 			echo " Downloading potable2appimage..." && curl -#Lo potable2appimage https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage && chmod a+x ./potable2appimage || exit 1
 		fi
+		sed -i -- 's/ _appimagetool / _appimagetool --appimage-extract-and-run /g' ./potable2appimage
 		./potable2appimage "$@"
 	else
+		sed -i -- 's/ _appimagetool / _appimagetool --appimage-extract-and-run /g' ./potable2appimage
 		potable2appimage "$@"
 	fi
 }
