@@ -75,6 +75,17 @@ _sharun() {
 	fi
 }
 
+lib4bin() {
+	if ! command -v lib4bin 1>/dev/null; then
+		if [ ! -f ./lib4bin ]; then
+			echo " Downloading sharun..." && curl -#Lo lib4bin https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin && chmod a+x ./lib4bin || exit 1
+		fi
+		./lib4bin "$@"
+	else
+		sharun "$@"
+	fi
+}
+
 _use_sharun() {
 	for b in $utils; do
 		_sharun lib4bin --with-wrappe --dst-dir am-bins "$(which "$b" | head -1)"
