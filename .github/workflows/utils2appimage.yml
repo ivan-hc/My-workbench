@@ -34,14 +34,15 @@ jobs:
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils
                chmod +x ./utils2appimage.sh
                ./utils2appimage.sh
-               cp *AppImage* workspace/ || cp ./*/*AppImage* workspace/ || cp ./*/*/*AppImage* workspace/
+               mkdir -p dist
+               cp *AppImage* dist/
                "
           else
             docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils
                chmod +x ./utils2appimage.sh
-               ./utils2appimage.sh
-               cp *AppImage* workspace/ || cp ./*/*AppImage* workspace/ || cp ./*/*/*AppImage* workspace/ 
+               mkdir -p dist
+               cp *AppImage* dist/
                "
           fi
 
