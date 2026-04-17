@@ -1,9 +1,9 @@
 name: utils2appimage
 
 on:
-  push:
-    tags:
-      - 'v*'   # Trigger on version tags like v1.0.0
+  #schedule:
+  #  - cron: "0 12 * * 1"
+  workflow_dispatch:
 
 jobs:
   build:
