@@ -40,7 +40,7 @@ jobs:
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
                && chmod +x ./utils2appimage.sh \
                && ./utils2appimage.sh \
-               && mkdir -p dist && cp ./* dist/"
+               && mkdir -p dist && cp ./*.bin dist/"
           fi
 
       # Upload artifacts for release
