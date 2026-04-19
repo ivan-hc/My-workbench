@@ -32,7 +32,7 @@ jobs:
         # Run the container and install necessary packages
         docker run --platform linux/${{ matrix.architecture }} -d --name ubuntu-container ubuntu:latest sh -c "
           apt-get update && \
-          apt-get install -y 7zip bash binutils coreutils curl file findutils grep patchelf sed strace wget xz"
+          apt-get install -y curl bash 7zip binutils coreutils file findutils grep patchelf sed strace wget xz"
 
         # Wait for the container to be ready and verify package installations
         docker exec ubuntu-container sh -c "curl --version && bash --version && echo 'All dependencies installed'"
