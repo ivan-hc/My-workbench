@@ -37,7 +37,23 @@ jobs:
                && chmod +x ./utils2appimage.sh \
                && ./utils2appimage.sh"
           fi
-          mkdir -p dist && cp ./*-static dist/
+
+          echo " Downloading potable2appimage..."
+          curl -#Lo potable2appimage https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage && chmod a+x ./potable2appimage || exit 1
+
+          export arch="x86_64"
+          items_amd64=$(ls ./ | tr ' ' '\n' | grep "x86_64-static$ | xargs)
+          for i in $items_amd64; do
+              ./potable2appimage "$i"
+          done
+
+          #export arch="aarch64"
+          #items_arm64=$(ls ./ | tr ' ' '\n' | grep "aarch64-static$ | xargs)
+          #for i in $items_arm64; do
+          #    ./potable2appimage "$i"
+          #done
+
+          mkdir -p dist && cp ./*AppImage* dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
@@ -68,6 +84,6 @@ jobs:
             generate_release_notes: false
             make_latest: true
             files: |
-              *-static
+              *AppImage*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
