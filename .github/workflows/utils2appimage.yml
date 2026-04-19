@@ -30,7 +30,12 @@ jobs:
         docker pull --platform linux/${{ matrix.architecture }} alpine:latest
 
         # Run the container and install necessary packages
-        docker run --platform linux/${{ matrix.architecture }} -d --name alpine-container alpine:latest sh -c "apk update && apk add 7zip bash binutils busybox coreutils curl file findutils grep patchelf sed strace wget xz"
+        docker run --platform linux/${{ matrix.architecture }} -d --name alpine-container alpine:latest sh -c "
+          apk update && \
+          apk add --no-cache 7zip bash binutils busybox coreutils curl file findutils grep patchelf sed strace wget xz"
+
+        # Wait for the container to be ready and the packages to be installed
+        docker exec alpine-container sh -c "curl --version && bash --version && echo 'All dependencies installed'"
 
         # Copy and run the script (adjust the script location)
         docker cp ./utils2appimage.sh alpine-container:/utils2appimage.sh
