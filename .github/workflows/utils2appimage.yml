@@ -19,20 +19,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Set up QEMU for ARM emulation (only needed for arm64 on x86 runners)
+      # Set up QEMU for ARM emulation (needed for arm64 on x86 runners)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
           platforms: linux/arm64
 
-      # Build a cached Docker image for this architecture
+      # Build Docker image with local cache
       - name: Build Docker image
         run: |
           IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
+          CACHE_DIR="/tmp/.buildx-cache-${{ matrix.arch }}"
+          mkdir -p $CACHE_DIR
           docker buildx build \
             --platform linux/${{ matrix.arch }} \
-            --cache-from type=registry,ref=myuser/utils2appimage-cache:${{ matrix.arch }} \
-            --cache-to type=registry,ref=myuser/utils2appimage-cache:${{ matrix.arch }},mode=max \
+            --load \
+            --cache-from type=local,src=$CACHE_DIR \
+            --cache-to type=local,dest=$CACHE_DIR,mode=max \
             -t $IMAGE_NAME \
             - <<EOF
           FROM debian:unstable
@@ -48,8 +51,9 @@ jobs:
       - name: Run script in container
         run: |
           IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
+          mkdir -p dist
           docker run --rm -v $PWD/dist:/workspace/dist -w /workspace $IMAGE_NAME \
-            bash -c "chmod +x ./utils2appimage.sh && ./utils2appimage.sh && mkdir -p dist && cp ./*-static dist/"
+            bash -c "chmod +x ./utils2appimage.sh && ./utils2appimage.sh && cp ./*-static dist/"
 
       # Upload artifacts
       - name: Upload artifact
