@@ -25,35 +25,20 @@ jobs:
         with:
           platforms: linux/arm64
 
-      # Build Docker image with local cache
-      - name: Build Docker image
+      # Run the script inside a minimal Debian container
+      - name: Run utils2appimage.sh
         run: |
-          IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
-          CACHE_DIR="/tmp/.buildx-cache-${{ matrix.arch }}"
-          mkdir -p $CACHE_DIR
-          docker buildx build \
-            --platform linux/${{ matrix.arch }} \
-            --load \
-            --cache-from type=local,src=$CACHE_DIR \
-            --cache-to type=local,dest=$CACHE_DIR,mode=max \
-            -t $IMAGE_NAME \
-            - <<EOF
-          FROM debian:unstable
-          RUN apt-get update && apt-get install -y \
+          IMAGE="debian:unstable"
+          PLATFORM="linux/${{ matrix.arch }}"
+          docker run --rm --platform $PLATFORM \
+            -v $PWD:/workspace -w /workspace $IMAGE \
+            bash -c "\
+              apt-get update && apt-get install -y \
               binutils busybox coreutils curl file findutils grep \
               p7zip-full patchelf sed strace wget xz-utils \
-              && rm -rf /var/lib/apt/lists/*
-          WORKDIR /workspace
-          COPY . /workspace
-          EOF
-
-      # Run your script inside the prebuilt image
-      - name: Run script in container
-        run: |
-          IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
-          mkdir -p dist
-          docker run --rm -v $PWD/dist:/workspace/dist -w /workspace $IMAGE_NAME \
-            bash -c "chmod +x ./utils2appimage.sh && ./utils2appimage.sh && cp ./*-static dist/"
+              && chmod +x ./utils2appimage.sh \
+              && ./utils2appimage.sh \
+              && mkdir -p dist && cp ./*-static dist/"
 
       # Upload artifacts
       - name: Upload artifact
