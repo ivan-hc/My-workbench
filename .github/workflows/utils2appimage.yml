@@ -29,18 +29,26 @@ jobs:
         # Pull Debian Unstable image based on the architecture
         docker pull --platform linux/${{ matrix.architecture }} debian:unstable
 
-        # Run the container and install necessary packages, clearing apt cache and forcing installation
+        # Run the container and install necessary packages, adding debugging for apt-get
         docker run --platform linux/${{ matrix.architecture }} -d --name debian-container debian:unstable sh -c "
           apt-get update -y && \
           apt-get clean && \
           apt-get install -y curl bash 7zip binutils coreutils file findutils grep patchelf sed strace wget xz && \
-          echo 'Packages installed successfully'"
+          echo 'Packages installed successfully' && \
+          curl --version && \
+          bash --version"
 
         # Debugging: Check the container logs for apt-get installation output
         docker logs debian-container
 
         # Debugging: Check if curl is in the PATH
         docker exec debian-container sh -c 'echo $PATH'
+
+        # Manually install curl with debugging for apt-get
+        docker exec debian-container sh -c "
+          apt-get install --no-install-recommends -y curl && \
+          echo 'Curl manually installed!' && \
+          curl --version"
 
         # Verify that curl is actually installed
         docker exec debian-container curl --version
