@@ -33,10 +33,17 @@ jobs:
         docker run --platform linux/${{ matrix.architecture }} -d --name debian-container debian:unstable sh -c "
           apt-get update && \
           apt-get install -y curl bash 7zip binutils coreutils file findutils grep patchelf sed strace wget xz && \
-          echo 'Packages installed successfully'"
+          echo 'Packages installed successfully' && \
+          echo 'Checking curl and bash versions:' && \
+          curl --version && \
+          bash --version && \
+          echo 'Installation complete'"
 
-        # Debugging step: Check the package installation log
+        # Debugging: Check the container logs
         docker logs debian-container
+
+        # Debugging: Check if curl is in the PATH
+        docker exec debian-container sh -c 'echo $PATH'
 
         # Verify that curl is actually installed
         docker exec debian-container curl --version
