@@ -27,7 +27,7 @@ jobs:
     - name: Build and run the script inside Alpine container
       run: |
         # Pull Alpine image based on the architecture
-        docker pull --platform linux/${{ matrix.architecture }} alpine:latest
+        docker pull --platform linux/${{ matrix.architecture }} alpine:edge
 
         # Run the container and install necessary packages
         docker run --platform linux/${{ matrix.architecture }} -d --name alpine-container alpine:latest sh -c "
