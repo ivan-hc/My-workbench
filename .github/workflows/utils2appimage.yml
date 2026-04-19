@@ -8,42 +8,50 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
+        arch: [amd64, arm64]
 
     steps:
       # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Set up Docker Buildx for cross-platform builds
+      # Set up Docker Buildx for multiarch builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Set up QEMU for ARM emulation
+      # Set up QEMU for ARM emulation (only needed for arm64 on x86 runners)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: arm64
+          platforms: linux/arm64
 
-      # Run your script inside the appropriate container
+      # Build a cached Docker image for this architecture
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
+          docker buildx build \
+            --platform linux/${{ matrix.arch }} \
+            --cache-from type=registry,ref=myuser/utils2appimage-cache:${{ matrix.arch }} \
+            --cache-to type=registry,ref=myuser/utils2appimage-cache:${{ matrix.arch }},mode=max \
+            -t $IMAGE_NAME \
+            - <<EOF
+          FROM debian:unstable
+          RUN apt-get update && apt-get install -y \
+              binutils busybox coreutils curl file findutils grep \
+              p7zip-full patchelf sed strace wget xz-utils \
+              && rm -rf /var/lib/apt/lists/*
+          WORKDIR /workspace
+          COPY . /workspace
+          EOF
+
+      # Run your script inside the prebuilt image
       - name: Run script in container
         run: |
-          IMAGE="debian:unstable"
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
-               apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
-               && chmod +x ./utils2appimage.sh \
-               && ./utils2appimage.sh \
-               && mkdir -p dist && cp ./*-static dist/"
-          else
-            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
-               apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
-               && chmod +x ./utils2appimage.sh \
-               && ./utils2appimage.sh \
-               && mkdir -p dist && cp ./*-static dist/"
-          fi
+          IMAGE_NAME="utils2appimage:${{ matrix.arch }}"
+          docker run --rm -v $PWD/dist:/workspace/dist -w /workspace $IMAGE_NAME \
+            bash -c "chmod +x ./utils2appimage.sh && ./utils2appimage.sh && mkdir -p dist && cp ./*-static dist/"
 
-      # Upload artifacts for release
+      # Upload artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
