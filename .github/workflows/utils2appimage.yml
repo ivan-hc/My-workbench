@@ -55,6 +55,7 @@ jobs:
         docker exec debian-container bash --version
 
         # Copy and run the script (adjust the script location)
+        chmod a+x ./utils2appimage.sh
         docker cp ./utils2appimage.sh debian-container:/utils2appimage.sh
         docker exec debian-container sh /utils2appimage.sh
 
