@@ -42,24 +42,18 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
-          name: output-${{ matrix.arch }}
+          name: static-binaries
           path: dist
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download x86_64 artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4.1.8
         with:
-          name: output-x86_64
+          name: static-binaries
           path: dist
-
-      #- name: Download aarch64 artifact
-      #  uses: actions/download-artifact@v4.1.8
-      #  with:
-      #    name: output-aarch64
-      #    path: dist
 
       - name: Create GitHub Release
         id: create_release
