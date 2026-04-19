@@ -89,14 +89,11 @@ _use_sharun
 
 # --------------------- EXPORT TO APPIMAGES
 
-cd am-bins || exit 1
+#cd am-bins || exit 1
+#executables=$(ls | xargs)
+#for e in $executables; do _potable2appimage $e; done
+#cd .. || exit 1
 
-executables=$(ls | xargs)
-
-for e in $executables; do _potable2appimage $e; done
-
-cd .. || exit 1
-
-mv am-bins/*AppImage* ./
+mv am-bins/* ./
 
 echo "Success!"
