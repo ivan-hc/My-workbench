@@ -97,7 +97,7 @@ wait
 
 bins=$(ls ./am-bins/ | xargs)
 for b in $bins; do
-	mv am-bins/"$b" ./"$b"-"${ARCH}"
+	mv am-bins/"$b" ./"$b"-"${ARCH}"-static
 done
 
 echo "Success!"
