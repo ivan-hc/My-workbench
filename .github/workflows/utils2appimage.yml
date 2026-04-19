@@ -34,13 +34,13 @@ jobs:
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
                && chmod +x ./utils2appimage.sh \
                && ./utils2appimage.sh \
-               && mkdir -p dist && cp ./*-aarch64 dist/"
+               && mkdir -p dist && cp ./*-static dist/"
           else
             docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
                && chmod +x ./utils2appimage.sh \
                && ./utils2appimage.sh \
-               && mkdir -p dist && cp ./*-x86_64 dist/"
+               && mkdir -p dist && cp ./*-static dist/"
           fi
 
       # Upload artifacts for release
@@ -78,6 +78,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            *.bin
+            *-static
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
