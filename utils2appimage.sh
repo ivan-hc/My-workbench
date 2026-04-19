@@ -38,7 +38,7 @@ _use_onelf() {
 	for b in $utils; do
 		bin="$(which "$b" | head -1)"
 		_onelf bundle-libs bins/"$b" --from-binary "$bin"
-		_onelf pack bins/"$b" -o "$b".bin --command bin/"$b" --level 22
+		_onelf pack bins/"$b" -o "$b".bin --command bin/"$b" --level 22 &
 		mv "$b".bin am-bins/
 	done
 }
@@ -58,7 +58,7 @@ _quick_sharun() {
 
 _use_quick_sharun() {
 	for b in $utils; do
-		_quick_sharun --make-static-bin --dst-dir am-bins "$(which "$b" | head -1)"
+		_quick_sharun --make-static-bin --dst-dir am-bins "$(which "$b" | head -1)" &
 	done
 }
 
@@ -77,7 +77,7 @@ _sharun() {
 
 _use_sharun() {
 	for b in $utils; do
-		_sharun lib4bin --with-wrappe --dst-dir am-bins "$(which "$b" | head -1)"
+		_sharun lib4bin --with-wrappe --dst-dir am-bins "$(which "$b" | head -1)" &
 	done
 }
 
@@ -86,6 +86,7 @@ _use_sharun() {
 #_use_onelf
 #_use_quick_sharun
 _use_sharun
+wait
 
 # --------------------- EXPORT TO APPIMAGES
 
@@ -96,7 +97,7 @@ _use_sharun
 
 bins=$(ls ./am-bins/ | xargs)
 for b in $bins; do
-	mv am-bins/"$b" ./"$b".bin
+	mv am-bins/"$b" ./"$b"-"${ARCH}"
 done
 
 echo "Success!"
