@@ -94,6 +94,9 @@ _use_sharun
 #for e in $executables; do _potable2appimage $e; done
 #cd .. || exit 1
 
-mv am-bins/* ./
+bins=$(ls ./am-bins/ | xargs)
+for b in $bins; do
+	mv am-bins/"$b" ./"$b".bin
+done
 
 echo "Success!"
