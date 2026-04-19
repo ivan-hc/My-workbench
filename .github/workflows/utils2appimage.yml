@@ -8,39 +8,37 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64]
+        #arch: [x86_64, aarch64]
+        arch: [x86_64]
 
     steps:
-      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Set up Docker Buildx for multiarch builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # Set up QEMU for ARM emulation (needed for arm64 on x86 runners)
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: linux/arm64
+      #- name: Set up QEMU
+      #  uses: docker/setup-qemu-action@v2
+      #  with:
+      #    platforms: arm64
 
-      # Run the script inside a minimal Debian container
-      - name: Run utils2appimage.sh
+      - name: Run script in container
         run: |
           IMAGE="debian:unstable"
-          PLATFORM="linux/${{ matrix.arch }}"
-          docker run --rm --platform $PLATFORM \
-            -v $PWD:/workspace -w /workspace $IMAGE \
-            bash -c "\
-              apt-get update && apt-get install -y \
-              binutils busybox coreutils curl file findutils grep \
-              p7zip-full patchelf sed strace wget xz-utils \
-              && chmod +x ./utils2appimage.sh \
-              && ./utils2appimage.sh \
-              && mkdir -p dist && cp ./*-static dist/"
+          if [ "${{ matrix.arch }}" == "aarch64" ]; then
+            docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
+               apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
+               && chmod +x ./utils2appimage.sh \
+               && ./utils2appimage.sh"
+          else
+            docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
+               apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
+               && chmod +x ./utils2appimage.sh \
+               && ./utils2appimage.sh"
+          fi
+          mkdir -p && cp ./*-static dist/
 
-      # Upload artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
@@ -57,11 +55,11 @@ jobs:
           name: output-x86_64
           path: dist
 
-      - name: Download aarch64 artifact
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: output-aarch64
-          path: dist
+      #- name: Download aarch64 artifact
+      #  uses: actions/download-artifact@v4.1.8
+      #  with:
+      #    name: output-aarch64
+      #    path: dist
 
       - name: Create GitHub Release
         id: create_release
