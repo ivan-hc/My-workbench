@@ -5,21 +5,6 @@ ARCH="$(uname -m)"
 busybox_utils=$(busybox --list | xargs)
 utils="7z file curl $busybox_utils"
 
-# --------------------- USE POTABLE2APPIMAGE TO CONVERT BINARIES IN APPIMAGES
-
-_potable2appimage() {
-	if ! command -v potable2appimage 1>/dev/null; then
-		if [ ! -f ./potable2appimage ]; then
-			echo " Downloading potable2appimage..." && curl -#Lo potable2appimage https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage && chmod a+x ./potable2appimage || exit 1
-		fi
-		sed -i -- 's/ _appimagetool / _appimagetool --appimage-extract-and-run /g' ./potable2appimage
-		./potable2appimage "$@"
-	else
-		sed -i -- 's/ _appimagetool / _appimagetool --appimage-extract-and-run /g' ./potable2appimage
-		potable2appimage "$@"
-	fi
-}
-
 # --------------------- ONELF
 
 _onelf() {
@@ -87,16 +72,11 @@ _use_sharun() {
 #_use_quick_sharun
 _use_sharun
 
-# --------------------- EXPORT TO APPIMAGES
-
-#cd am-bins || exit 1
-#executables=$(ls | xargs)
-#for e in $executables; do _potable2appimage $e; done
-#cd .. || exit 1
-
 bins=$(ls ./am-bins/ | xargs)
 for b in $bins; do
-	mv am-bins/"$b" ./"$b"-"${ARCH}"-static
+	pkgname=$(dpkg -S "$(which "$b")" | awk -F':' '{print $1}' | head -1)
+	pkgver=$(apt-cache show "$b" | grep -i version | awk '{print $2}' | head -1)
+	mv am-bins/"$b" ./"$b"_"$pkgver"-"${ARCH}"-static
 done
 
 echo "Success!"
