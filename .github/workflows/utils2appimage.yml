@@ -42,9 +42,10 @@ jobs:
           curl -#Lo potable2appimage https://raw.githubusercontent.com/ivan-hc/portable2appimage/refs/heads/main/portable2appimage && chmod a+x ./potable2appimage || exit 1
 
           export arch="${{ matrix.arch }}"
-          items=$(ls ./ | tr ' ' '\n' | grep -- "-${{ matrix.arch }}-static$" | xargs)
+          items=$(ls ./ | tr ' ' '\n' | grep -- ".tar.gz$" | xargs)
           for i in $items; do
-              ./potable2appimage "$i"
+              bin=$(echo "$i" | tr '_' '\n' | head -1)
+              ./potable2appimage "$i" "$bin"
           done
 
           mkdir -p dist && cp ./*AppImage* dist/
