@@ -24,7 +24,7 @@ _use_onelf() {
 		bin="$(which "$b" | head -1)"
 		_onelf bundle-libs bins/"$b" --from-binary "$bin"
 		_onelf pack bins/"$b" -o "$b".bin --command bin/"$b" --level 22
-		mv "$b".bin am-bins/
+		mv "$b".bin am-bins/"$b"
 	done
 }
 
@@ -74,10 +74,9 @@ _use_sharun
 
 bins=$(ls ./am-bins/ | xargs)
 for b in $bins; do
-	b=$(echo "$b" | sed 's/.bin$//g')
 	pkgname=$(dpkg -S "$(which "$b")" | awk -F':' '{print $1}' | head -1)
 	pkgver=$(apt-cache show "$pkgname" | grep -i version | awk '{print $2}' | head -1)
-	tar -czvf am-bins/"$b"_"$pkgver"-"${ARCH}".tar.gz
+	tar -czvf "$b"_"$pkgver"-"${ARCH}".tar.gz am-bins/"$b"
 done
 
 echo "Success!"
