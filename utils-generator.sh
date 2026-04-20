@@ -74,9 +74,10 @@ _use_sharun
 
 bins=$(ls ./am-bins/ | xargs)
 for b in $bins; do
+	b=$(echo "$b" | sed 's/.bin$//g')
 	pkgname=$(dpkg -S "$(which "$b")" | awk -F':' '{print $1}' | head -1)
 	pkgver=$(apt-cache show "$pkgname" | grep -i version | awk '{print $2}' | head -1)
-	mv am-bins/"$b" ./"$b"_"$pkgver"-"${ARCH}"-static
+	tar -czvf am-bins/"$b"_"$pkgver"-"${ARCH}".tar.gz
 done
 
 echo "Success!"
