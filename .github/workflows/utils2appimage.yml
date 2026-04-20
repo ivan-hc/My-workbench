@@ -29,13 +29,13 @@ jobs:
           if [ "${{ matrix.arch }}" == "aarch64" ]; then
             docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
-               && chmod +x ./utils2appimage.sh \
-               && ./utils2appimage.sh"
+               && chmod +x ./utils-generator.sh \
+               && ./utils-generator.sh"
           else
             docker run --rm --platform linux/amd64 -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
                apt-get update && apt-get install -y binutils busybox coreutils curl file findutils grep p7zip-full patchelf sed strace wget xz-utils \
-               && chmod +x ./utils2appimage.sh \
-               && ./utils2appimage.sh"
+               && chmod +x ./utils-generator.sh \
+               && ./utils-generator.sh"
           fi
 
           echo " Downloading potable2appimage..."
