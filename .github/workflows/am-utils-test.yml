@@ -25,24 +25,23 @@ jobs:
       - name: Build all binaries in container
         run: |
           IMAGE="debian:unstable"
+          ARCH="${{ matrix.arch }}"
 
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
+          if [ "$ARCH" = "aarch64" ]; then
             PLATFORM="linux/arm64"
           else
             PLATFORM="linux/amd64"
           fi
 
-          docker run --rm --platform $PLATFORM -v $PWD:/workspace -w /workspace $IMAGE bash -e <<'EOF'
+          docker run --rm --platform "$PLATFORM" -v "$PWD":/workspace -w /workspace -e ARCH="$ARCH" $IMAGE bash -e -c '
             set -e
 
-            ARCH="$(uname -m)"
             mkdir -p am-bins dist
 
-            RED='\033[0;31m'
+            RED="\033[0;31m"
             TERMINAL_WIDTH="${COLUMNS:-80}"
-            DIVIDING_LINE=$(printf '%*s' "$TERMINAL_WIDTH" '' | tr ' ' '-')
+            DIVIDING_LINE=$(printf "%*s" "$TERMINAL_WIDTH" "" | tr " " "-")
 
-            # -------------------- Utilities
             utils="7z \
             ar \
             base64 basename bzip2 \
@@ -67,39 +66,33 @@ jobs:
             yes \
             zcat zsync"
 
-            # -------------------- Download quick-sharun
+            # Download quick-sharun if missing
             if ! command -v quick-sharun >/dev/null 2>&1; then
               curl -#Lo quick-sharun https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh
               chmod +x quick-sharun
             fi
 
-            # -------------------- Build binaries
-            rm -f "${ARCH}".sha256sum.txt
+            rm -f "dist/${ARCH}.sha256sum.txt"
 
             for b in $utils; do
-              # Find binary path
               if [ "$b" = 7z ]; then binpath="/usr/lib/7zip/7zz"; else binpath=$(which "$b" 2>/dev/null); fi
               if [ ! -x "$binpath" ]; then
-                printf "%b%b\n\n 💀 ERROR: cannot create %b \n\n%b\033[0m\n" "${RED}" "$DIVIDING_LINE" "$b" "$DIVIDING_LINE"
+                printf "%b%b\n\n 💀 ERROR: cannot create %b \n\n%b\033[0m\n" "$RED" "$DIVIDING_LINE" "$b" "$DIVIDING_LINE"
                 continue
               fi
 
-              # Build static binary with quick-sharun
               ./quick-sharun --make-static-bin --dst-dir am-bins "$binpath"
 
-              # Rename 7z binary
               if [ "$b" = 7z ]; then mv ./am-bins/7zz ./am-bins/7z; fi
 
-              # Copy binaries to dist
               cp ./am-bins/"$b" ./dist/"$b"-"${ARCH}"-static
-              cp ./am-bins/"$b" ./dist/"$b"_"$(dpkg-query -W -f='${Version}' $(dpkg -S "$binpath" 2>/dev/null | awk -F':' '{print $1}' | head -1) 2>/dev/null || echo unknown)"-"${ARCH}"-static
+              cp ./am-bins/"$b" ./dist/"$b"_static-"${ARCH}"
 
-              # Update SHA256 for this architecture
               sha256sum ./dist/"$b"-"${ARCH}"-static >> ./dist/"${ARCH}".sha256sum.txt
             done
 
             echo "✅ All binaries for ${ARCH} built successfully!"
-EOF
+          '
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
@@ -126,8 +119,7 @@ EOF
           find artifacts -type f -name "*-static" -exec cp {} merged/ \;
           find artifacts -type f -name "*.sha256sum.txt" -exec cp {} merged/ \;
 
-      # Continuous release
-      - name: Release (${{ matrix.arch }})
+      - name: Continuous release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           title: ${{ matrix.arch }}
@@ -139,14 +131,12 @@ EOF
             merged/${{ matrix.arch }}.sha256sum.txt
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Snapshot Release
-      - name: get date
+      - name: Get date for snapshot
         run: |
           SNAPSHOT_TAG="$(date --utc +'%Y%m%d')"
           echo SNAPSHOT_TAG="${SNAPSHOT_TAG}" >> "${GITHUB_ENV}"
-        continue-on-error: false
 
-      - name: create snapshot
+      - name: Create snapshot
         uses: softprops/action-gh-release@v2
         with:
           name: "${{ matrix.arch }}-${{ env.SNAPSHOT_TAG}}"
@@ -158,4 +148,3 @@ EOF
           files: |
             merged/*-${{ matrix.arch }}-static
             merged/${{ matrix.arch }}.sha256sum.txt
-        continue-on-error: false
