@@ -22,7 +22,7 @@ jobs:
         with:
           platforms: arm64
 
-      - name: Run script in container
+      - name: Build all binaries in container
         run: |
           IMAGE="debian:unstable"
 
@@ -32,28 +32,74 @@ jobs:
             PLATFORM="linux/amd64"
           fi
 
-          docker run --rm --platform $PLATFORM -v $PWD:/workspace -w /workspace $IMAGE bash -c "\
-            apt-get update && \
-            apt-get install -y \
-              7zip-standalone \
-              binutils bsdextrautils busybox bzip2 \
-              coreutils curl \
-              debianutils \
-              file findutils \
-              gawk grep \
-              less libnotify-bin \
-              p7zip-full patchelf procps psmisc \
-              sed strace \
-              unzip \
-              wget \
-              xz-utils \
-              zsync && \
-            chmod +x ./utils-generator.sh && \
-            ./utils-generator.sh"
+          docker run --rm --platform $PLATFORM -v $PWD:/workspace -w /workspace $IMAGE bash -e <<'EOF'
+            set -e
 
-          mkdir -p dist
-          cp ./*-"${{ matrix.arch }}"-static dist/
-          cp ./*.sha256sum.txt dist/
+            ARCH="$(uname -m)"
+            mkdir -p am-bins dist
+
+            RED='\033[0;31m'
+            TERMINAL_WIDTH="${COLUMNS:-80}"
+            DIVIDING_LINE=$(printf '%*s' "$TERMINAL_WIDTH" '' | tr ' ' '-')
+
+            # -------------------- Utilities
+            utils="7z \
+            ar \
+            base64 basename bzip2 \
+            cat chmod chown chroot clear column cp curl cut \
+            dd diff dirname du \
+            echo \
+            file fold \
+            gawk grep \
+            head \
+            id \
+            kill killall \
+            less ln ls \
+            notify-send \
+            mawk md5sum mkdir more mount mv \
+            printf \
+            readlink realpath rev rm \
+            sed sh sha1sum sha256sum sha512sum sleep sort strace strings strip swapoff swapon \
+            tail tar tee test tput top touch tr tty \
+            umount uname uncompress uniq unshare unxz unzip uptime \
+            watch wc wget \
+            xargs xz xzcat \
+            yes \
+            zcat zsync"
+
+            # -------------------- Download quick-sharun
+            if ! command -v quick-sharun >/dev/null 2>&1; then
+              curl -#Lo quick-sharun https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh
+              chmod +x quick-sharun
+            fi
+
+            # -------------------- Build binaries
+            rm -f "${ARCH}".sha256sum.txt
+
+            for b in $utils; do
+              # Find binary path
+              if [ "$b" = 7z ]; then binpath="/usr/lib/7zip/7zz"; else binpath=$(which "$b" 2>/dev/null); fi
+              if [ ! -x "$binpath" ]; then
+                printf "%b%b\n\n 💀 ERROR: cannot create %b \n\n%b\033[0m\n" "${RED}" "$DIVIDING_LINE" "$b" "$DIVIDING_LINE"
+                continue
+              fi
+
+              # Build static binary with quick-sharun
+              ./quick-sharun --make-static-bin --dst-dir am-bins "$binpath"
+
+              # Rename 7z binary
+              if [ "$b" = 7z ]; then mv ./am-bins/7zz ./am-bins/7z; fi
+
+              # Copy binaries to dist
+              cp ./am-bins/"$b" ./dist/"$b"-"${ARCH}"-static
+              cp ./am-bins/"$b" ./dist/"$b"_"$(dpkg-query -W -f='${Version}' $(dpkg -S "$binpath" 2>/dev/null | awk -F':' '{print $1}' | head -1) 2>/dev/null || echo unknown)"-"${ARCH}"-static
+
+              # Update SHA256 for this architecture
+              sha256sum ./dist/"$b"-"${ARCH}"-static >> ./dist/"${ARCH}".sha256sum.txt
+            done
+
+            echo "✅ All binaries for ${ARCH} built successfully!"
+EOF
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
@@ -99,6 +145,7 @@ jobs:
           SNAPSHOT_TAG="$(date --utc +'%Y%m%d')"
           echo SNAPSHOT_TAG="${SNAPSHOT_TAG}" >> "${GITHUB_ENV}"
         continue-on-error: false
+
       - name: create snapshot
         uses: softprops/action-gh-release@v2
         with:
