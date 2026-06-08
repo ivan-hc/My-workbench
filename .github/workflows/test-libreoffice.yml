@@ -61,23 +61,25 @@ jobs:
           ./make_libreoffice_appimage fresh x86-64 "${{ matrix.language }}" N Y Y Y
           ./make_libreoffice_appimage fresh x86-64 "${{ matrix.language }}" Y Y Y Y
 
+          echo "=== AppImage files found ==="
+          find . -name '*AppImage*' || true
+
           mkdir -p dist
 
-          find . -type f \( -name "*.AppImage" -o -name "*.AppImage.zsync" \) \
-            -exec mv {} dist/ \;
+          find . -type f -name '*AppImage*' -exec mv {} dist/ \; || true
 
+          echo "=== dist contents ==="
           ls -lah dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: AppImage-${{ matrix.language }}
-          path: dist/*
+          path: dist
           if-no-files-found: error
 
   release:
     needs: build
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -92,6 +94,7 @@ jobs:
 
       - name: Show collected files
         run: |
+          echo "=== Collected artifacts ==="
           find artifacts -type f
 
       - name: Generate snapshot tag
@@ -108,7 +111,7 @@ jobs:
           draft: false
           make_latest: false
           generate_release_notes: false
-          files: artifacts/*
+          files: artifacts/**
 
       - name: Continuous release
         uses: marvinpinto/action-automatic-releases@latest
@@ -118,4 +121,4 @@ jobs:
           title: LibreOffice FRESH
           prerelease: false
           draft: false
-          files: artifacts/*
+          files: artifacts/**
