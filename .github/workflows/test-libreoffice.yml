@@ -103,7 +103,7 @@ jobs:
           echo "SNAPSHOT_TAG=$SNAPSHOT_TAG" >> "$GITHUB_ENV"
 
       - name: Snapshot release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Snapshot FRESH ${{ env.SNAPSHOT_TAG }}
           tag_name: ${{ env.SNAPSHOT_TAG }}

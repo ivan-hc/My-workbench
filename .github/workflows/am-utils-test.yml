@@ -137,7 +137,7 @@ jobs:
           echo SNAPSHOT_TAG="${SNAPSHOT_TAG}" >> "${GITHUB_ENV}"
 
       - name: Create snapshot
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: "${{ matrix.arch }}-${{ env.SNAPSHOT_TAG}}"
           tag_name: "${{ matrix.arch }}-${{ env.SNAPSHOT_TAG}}"
